@@ -12,11 +12,59 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            var l = new List<int>() { 9, 21, 19, 13, 26, 18, 18, 25, 24, 25, 25, 35 };
+            //var l = new List<int>() { 9, 21, 19, 13, 26, 18, 18, 25, 24, 25, 25, 35 };
 
-            var x0 = LocalMaximaNaive(l);
-            var x1 = LocalMaxima1(l);
-            var x2 = LocalMaxima2(l);
+            //var x0 = LocalMaximaNaive(l);
+            //var x1 = LocalMaxima1(l);
+            //var x2 = LocalMaxima2(l);
+
+            //var ans = Check(x0, x1);
+
+            StressTest();
+        }
+
+        static void StressTest()
+        {
+            var rnd = new Random(0);
+
+            for (var i = 1; i <= 1000000; ++i)
+            {
+                var list = new List<int>();
+                for (var j = 0; j < i; ++j)
+                {
+                    list.Add(rnd.Next(0, 1000000000));
+                }
+                var x0 = LocalMaximaNaive(list);
+                //var x1 = LocalMaxima1(list);
+                var x2 = LocalMaxima2(list);
+
+
+
+                //if (!Check(x0, x1))
+                //{
+                //    Console.WriteLine("Failed for localmaxima1");
+                //}
+                if (!Check(x0, x2))
+                {
+                    Console.WriteLine("Failed for localmaxima2");
+                }
+            }
+        }
+
+        static bool Check(List<KeyValuePair<int, int>> trueList, List<KeyValuePair<int, int>> checkList)
+        {
+            if (checkList.Count != trueList.Count)
+            {
+                return false;
+            }
+            for (var i = 0; i < trueList.Count; ++i)
+            {
+                if (trueList[i].Key != checkList[i].Key || trueList[i].Value != checkList[i].Value)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         static void WriteFileHashValues(Stream fileStream, Stream outStream)
@@ -36,7 +84,7 @@ namespace ASync
                 var isOk = true;
                 for (var j = i - h; j <= i + h; ++j)
                 {
-                    if (j <= 0 || j >= list.Count || j == i)
+                    if (j < 0 || j >= list.Count || j == i)
                     {
                         continue;
                     }
@@ -109,6 +157,11 @@ namespace ASync
 
             while (currBlockStart < list.Count)
             {
+                if (currBlockEnd > list.Count - 1)
+                {
+                    currBlockEnd = list.Count - 1;
+                }
+
                 var currGreedySeq = new List<KeyValuePair<int, int>>();
                 currGreedySeq.Add(new KeyValuePair<int, int>(currBlockEnd, list[currBlockEnd]));
                 var currLiveCanIdx = currBlockEnd;
@@ -125,29 +178,30 @@ namespace ASync
                     OrdinaryRun(list, liveCanPrevBlockIdx + h + 1, currBlockEnd - 1, currGreedySeq, ref currLiveCanIdx);
 
                     var lastInCurrGreedySeq = currGreedySeq[currGreedySeq.Count - 1].Value;
+                    var modIdx = liveCanPrevBlockIdx + h > currBlockEnd ? currBlockEnd : liveCanPrevBlockIdx + h;
+
                     if (lastInCurrGreedySeq >= liveCanPrevBlockVal)
                     {
                         // F(g) >= F(m)
-                        var i = liveCanPrevBlockIdx + h > currBlockEnd ? currBlockEnd : liveCanPrevBlockIdx + h;
-                        while (i >= currBlockStart)
+                        while (modIdx >= currBlockStart)
                         {
-                            if (list[i] == liveCanPrevBlockVal)
+                            if (list[modIdx] == liveCanPrevBlockVal)
                             {
                                 // Kill m
                                 liveCanPrevBlockIdx = -1;
-                                --i;
+                                --modIdx;
                                 break;
                             }
-                            if (list[i] > liveCanPrevBlockVal)
+                            if (list[modIdx] > liveCanPrevBlockVal)
                             {
                                 // Kill m
                                 liveCanPrevBlockIdx = -1;
                                 break;
                             }
-                            --i;
+                            --modIdx;
                         }
-                        i = i < currGreedySeq[currGreedySeq.Count - 1].Key ? i : currGreedySeq[currGreedySeq.Count - 1].Key - 1;
-                        OrdinaryRun(list, currBlockStart, i, currGreedySeq, ref currLiveCanIdx);
+                        modIdx = modIdx < currGreedySeq[currGreedySeq.Count - 1].Key ? modIdx : currGreedySeq[currGreedySeq.Count - 1].Key - 1;
+                        OrdinaryRun(list, currBlockStart, modIdx, currGreedySeq, ref currLiveCanIdx);
                         if (liveCanPrevBlockIdx != -1)
                         {
                             ret.Add(new KeyValuePair<int, int>(liveCanPrevBlockIdx, liveCanPrevBlockVal));
@@ -156,33 +210,32 @@ namespace ASync
                     else
                     {
                         // F(g) < F(m)
-                        var i = liveCanPrevBlockIdx + h;
                         var lastValue = currGreedySeq[currGreedySeq.Count - 1].Value;
-                        while (i >= currBlockStart)
+                        while (modIdx >= currBlockStart)
                         {
-                            if (list[i] > lastValue)
+                            if (list[modIdx] > lastValue)
                             {
                                 // Strictly greater than, add to the greedy sequence.
-                                currGreedySeq.Add(new KeyValuePair<int, int>(i, list[i]));
-                                lastValue = list[i];
-                                currLiveCanIdx = i;
-                                if (list[i] >= liveCanPrevBlockVal)
+                                currGreedySeq.Add(new KeyValuePair<int, int>(modIdx, list[modIdx]));
+                                lastValue = list[modIdx];
+                                currLiveCanIdx = modIdx;
+                                if (list[modIdx] >= liveCanPrevBlockVal)
                                 {
                                     // Kill m
                                     liveCanPrevBlockIdx = -1;
-                                    --i;
+                                    --modIdx;
                                     break;
                                 }
                             }
-                            if (list[i] == lastValue)
+                            if (list[modIdx] == lastValue)
                             {
                                 // Equal: kill the current candidate but don't add to the greedy sequence.
                                 currLiveCanIdx = -1;
                             }
-                            --i;
+                            --modIdx;
                         }
-                        i = i < currGreedySeq[currGreedySeq.Count - 1].Key ? i : currGreedySeq[currGreedySeq.Count - 1].Key - 1;
-                        OrdinaryRun(list, currBlockStart, i, currGreedySeq, ref currLiveCanIdx);
+                        modIdx = modIdx < currGreedySeq[currGreedySeq.Count - 1].Key ? modIdx : currGreedySeq[currGreedySeq.Count - 1].Key - 1;
+                        OrdinaryRun(list, currBlockStart, modIdx, currGreedySeq, ref currLiveCanIdx);
                         if (liveCanPrevBlockIdx != -1)
                         {
                             ret.Add(new KeyValuePair<int, int>(liveCanPrevBlockIdx, liveCanPrevBlockVal));
@@ -191,6 +244,23 @@ namespace ASync
                 }
 
                 // Move on to the next block.
+                if (currLiveCanIdx != -1)
+                {
+                    for (var i = 0; i < prevBlockGreedySeq.Count; ++i)
+                    {
+                        if (prevBlockGreedySeq[i].Key < currLiveCanIdx - h)
+                        {
+                            break;
+                        }
+                        if (prevBlockGreedySeq[i].Value >= list[currLiveCanIdx])
+                        {
+                            currLiveCanIdx = -1;
+                            break;
+                        }
+                    }
+                }
+
+                prevBlockGreedySeq = currGreedySeq;
                 liveCanPrevBlockIdx = currLiveCanIdx;
                 if (liveCanPrevBlockIdx != -1)
                 {
@@ -199,10 +269,7 @@ namespace ASync
 
                 currBlockStart += h + 1;
                 currBlockEnd += h + 1;
-                if (currBlockEnd > list.Count - 1)
-                {
-                    currBlockEnd = list.Count - 1;
-                }
+
             }
             if (liveCanPrevBlockIdx != -1)
             {
