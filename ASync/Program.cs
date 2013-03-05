@@ -13,13 +13,45 @@ namespace ASync
         static void Main(string[] args)
         {
             var l = new List<int>() { 9, 21, 19, 13, 26, 18, 18, 25, 24, 25, 25, 35 };
-            var x = LocalMaxima2(l);
+
+            var x0 = LocalMaximaNaive(l);
+            var x1 = LocalMaxima1(l);
+            var x2 = LocalMaxima2(l);
         }
 
         static void WriteFileHashValues(Stream fileStream, Stream outStream)
         {
             var blockSize = 3;
             var windowsSize = 2;
+        }
+
+        static List<KeyValuePair<int, int>> LocalMaximaNaive(List<int> list)
+        {
+            var ret = new List<KeyValuePair<int, int>>();
+
+            var h = 2;
+
+            for (var i = 0; i < list.Count; ++i)
+            {
+                var isOk = true;
+                for (var j = i - h; j <= i + h; ++j)
+                {
+                    if (j <= 0 || j >= list.Count || j == i)
+                    {
+                        continue;
+                    }
+                    if (list[j] >= list[i])
+                    {
+                        isOk = false;
+                        break;
+                    }
+                }
+                if (isOk)
+                {
+                    ret.Add(new KeyValuePair<int, int>(i, list[i]));
+                }
+            }
+            return ret;
         }
 
         static List<KeyValuePair<int, int>> LocalMaxima1(List<int> list)
