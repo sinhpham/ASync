@@ -12,7 +12,7 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            //var l = new List<int>() { 9, 21, 19, 13, 26, 18, 18, 25, 24, 25, 25, 35 };
+            var l = new List<int>() { 5, 2, 4, 1, 7, 7, 4, 1, 8 };
 
             //var x0 = LocalMaximaNaive(l);
             //var x1 = LocalMaxima1(l);
@@ -27,7 +27,7 @@ namespace ASync
         {
             var rnd = new Random(0);
 
-            for (var i = 1; i <= 1000000; ++i)
+            for (var i = 1; i <= 500000; ++i)
             {
                 var list = new List<int>();
                 for (var j = 0; j < i; ++j)
@@ -35,19 +35,20 @@ namespace ASync
                     list.Add(rnd.Next(0, 1000000000));
                 }
                 var x0 = LocalMaximaNaive(list);
-                //var x1 = LocalMaxima1(list);
-                var x2 = LocalMaxima2(list);
+                var x1 = LocalMaxima1(list);
+                //var x2 = LocalMaxima2(list);
 
 
 
-                //if (!Check(x0, x1))
-                //{
-                //    Console.WriteLine("Failed for localmaxima1");
-                //}
-                if (!Check(x0, x2))
+                if (!Check(x0, x1))
                 {
-                    Console.WriteLine("Failed for localmaxima2");
+                    Console.WriteLine("Failed for localmaxima1");
                 }
+                //if (!Check(x0, x2))
+                //{
+                //    Console.WriteLine("Failed for localmaxima2");
+                //}
+                Console.WriteLine("List count: {0}", i);
             }
         }
 
@@ -110,34 +111,54 @@ namespace ASync
             var h = 2;
 
             var isCandidate = true;
-            var tempList = new List<KeyValuePair<int, int>>();
-            tempList.Add(new KeyValuePair<int, int>(0, list[0]));
+            var greedyList = new List<KeyValuePair<int, int>>();
+            greedyList.Add(new KeyValuePair<int, int>(0, list[0]));
 
-            for (var i = 1; i < list.Count; ++i)
+            for (var lIdx = 1; lIdx < list.Count; ++lIdx)
             {
-                while (tempList.Count > 0 && tempList[tempList.Count - 1].Value <= list[i])
+                var removeIdx = greedyList.Count - 1;
+                while (removeIdx >= 0)
                 {
-                    tempList.RemoveAt(tempList.Count - 1);
+                    if (greedyList[removeIdx].Value > list[lIdx])
+                    {
+                        break;
+                    }
+                    --removeIdx;
                 }
-                if (tempList.Count > 0 && tempList[0].Key == i - h)
+                ++removeIdx;
+                var lastRemovedValueIsEqual = false;
+                if (removeIdx >= 0 && removeIdx < greedyList.Count)
+                {
+                    if (greedyList[removeIdx].Value == list[lIdx])
+                    {
+                        lastRemovedValueIsEqual = true;
+                    }
+                    greedyList.RemoveRange(removeIdx, greedyList.Count - removeIdx);
+                }
+
+
+                if (greedyList.Count > 0 && greedyList[0].Key == lIdx - h)
                 {
                     if (isCandidate)
                     {
-                        ret.Add(tempList[0]);
+                        ret.Add(greedyList[0]);
                         isCandidate = false;
                     }
-                    tempList.RemoveAt(0);
                 }
-                tempList.Add(new KeyValuePair<int, int>(i, list[i]));
-                if (tempList.Count == 1)
+                greedyList.Add(new KeyValuePair<int, int>(lIdx, list[lIdx]));
+                if (greedyList.Count == 1)
                 {
-                    isCandidate = true;
+                    isCandidate = lastRemovedValueIsEqual ? false : true;
+                }
+                if (greedyList.Count > 0 && greedyList[0].Key == lIdx - h)
+                {
+                    greedyList.RemoveAt(0);
                 }
             }
 
-            if (tempList.Count > 0 && isCandidate)
+            if (greedyList.Count > 0 && isCandidate)
             {
-                ret.Add(tempList[0]);
+                ret.Add(greedyList[0]);
             }
 
             return ret;
