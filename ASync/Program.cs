@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 
 namespace ASync
 {
@@ -12,15 +13,36 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            var l = new List<int>() { 5, 2, 4, 1, 7, 7, 4, 1, 8 };
+            //var l = new List<int>() { 5, 2, 4, 1, 7, 7, 4, 1, 8 };
 
-            //var x0 = LocalMaximaNaive(l);
-            //var x1 = LocalMaxima1(l);
-            //var x2 = LocalMaxima2(l);
+            ////var x0 = LocalMaximaNaive(l);
+            ////var x1 = LocalMaxima1(l);
+            ////var x2 = LocalMaxima2(l);
 
-            //var ans = Check(x0, x1);
+            ////var ans = Check(x0, x1);
 
-            StressTest();
+            //StressTest();
+
+            var hFuncs = new List<HashAlgorithm>();
+            for (var i = 0; i < 5; ++i)
+            {
+                var hf = new MurmurHash3_x86_32();
+                hf.Seed = (uint)i;
+                hFuncs.Add(hf);
+            }
+
+            var filter = new BloomFilter(1000000, hFuncs);
+            var numberOfValuesToAdd = 5000;
+
+            for (int i = 0; i < numberOfValuesToAdd; i++)
+            {
+                var value = string.Format("Test {0}", i);
+                var bValue = System.Text.Encoding.UTF8.GetBytes(value);
+                System.Diagnostics.Debug.Assert(filter.Contains(bValue, 0, bValue.Length) == false);
+
+                filter.Add(bValue, 0, bValue.Length);
+                System.Diagnostics.Debug.Assert(filter.Contains(bValue, 0, bValue.Length) == true);
+            }
         }
 
         static void StressTest()
