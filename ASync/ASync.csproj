@@ -42,6 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BloomFilter.cs" />
+    <Compile Include="CharacteristicPolynomial.cs" />
+    <Compile Include="LocalMaxima.cs" />
     <Compile Include="MurmurHash3_x86_32.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
