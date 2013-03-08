@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASync", "ASync\ASync.csproj", "{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncTest", "AsyncTest\AsyncTest.csproj", "{ED9444DF-F429-4821-915D-E7C44AA450B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

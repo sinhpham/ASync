@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ASync
 {
-    class CharacteristicPolynomial
+    public class CharacteristicPolynomial
     {
         public List<int> Calc(List<int> set, List<int> xValues, int maxFieldValue)
         {
