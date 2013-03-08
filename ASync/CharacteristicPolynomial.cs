@@ -39,12 +39,16 @@ namespace ASync
 
         private int DivGF(int a, int b, int p)
         {
+            // Division over finite field 
+            // p should be a prime number
             var ib = InversionGF(b, p);
             return (a * ib) % p;
         }
 
         private int InversionGF(int a, int p)
         {
+            // Inversion over finite field 
+            // p should be a prime number
             var y1 = 1;
             var y2 = 0;
             var oriP = p;
