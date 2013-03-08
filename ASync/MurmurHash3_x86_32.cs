@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ASync
 {
-    class MurmurHash3_x86_32 : HashAlgorithm
+    public class MurmurHash3_x86_32 : HashAlgorithm
     {
         public override void Initialize()
         {

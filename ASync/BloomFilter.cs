@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ASync
 {
-    class BloomFilter
+    public class BloomFilter
     {
         public BloomFilter(int bitLength, ICollection<HashAlgorithm> hashFunctions)
         {
