@@ -58,12 +58,14 @@ namespace ASync
             return ret;
         }
 
-        public void Interpolate(List<int> rf, List<int> xValues, int maxFieldValue, out List<int> P, out List<int> Q)
+        public void Interpolate(List<int> rf, List<int> xValues,
+            int maxFieldValue, int d,
+            out List<int> P, out List<int> Q)
         {
             var pSize = 0;
             var qSize = 0;
 
-            var retPtr = Interpolate(rf.ToArray(), rf.Count, xValues.ToArray(), xValues.Count, maxFieldValue, 1, out pSize, out qSize);
+            var retPtr = Interpolate(rf.ToArray(), rf.Count, xValues.ToArray(), xValues.Count, maxFieldValue, d, out pSize, out qSize);
 
             var pArr = new int[pSize];
             var qArr = new int[qSize];

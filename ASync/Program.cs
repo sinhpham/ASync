@@ -20,7 +20,9 @@ namespace ASync
 
             List<int> p;
             List<int> q;
-            cp.Interpolate(new List<int> { 26,13,56,24 }, new List<int> { -1, -2, -3, -4 }, 67, out p, out q);
+            cp.Interpolate(new List<int> { 26,13,56,24 }, new List<int> { -1, -2, -3, -4 },
+                67, 1,
+                out p, out q);
         }
 
         static void WriteFileHashValues(Stream fileStream, Stream outStream)
