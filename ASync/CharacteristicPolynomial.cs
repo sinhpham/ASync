@@ -33,6 +33,7 @@ namespace ASync
             return ret;
         }
 
+        // Division of two polynomials over finite field
         public List<int> Div(List<int> cpa, List<int> cpb)
         {
             // Calculate CPa/CPb.
@@ -46,6 +47,8 @@ namespace ASync
             return ret;
         }
 
+        // Factoring polynomial over finite field
+        // coeff[0] is the constant
         public List<int> Factoring(List<int> coeff)
         {
             var arr = coeff.ToArray();
@@ -61,8 +64,8 @@ namespace ASync
             return ret;
         }
 
-        public void Interpolate(List<int> rf, List<int> xValues,
-            int d,
+        // Interpolating rational polynomial over finite field
+        public void Interpolate(List<int> rf, List<int> xValues, int d,
             out List<int> P, out List<int> Q)
         {
             var pSize = 0;
