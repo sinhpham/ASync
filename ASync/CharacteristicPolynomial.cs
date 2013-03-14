@@ -115,15 +115,15 @@ namespace ASync
             return y1;
         }
 
-        [DllImport("NTLLib.dll")]
+        [DllImport("libs/NTLLib.dll")]
         private static extern IntPtr Factoring(int[] array, int size, int maxFieldValue, out int returnArrSize);
 
-        [DllImport("NTLLib.dll")]
+        [DllImport("libs/NTLLib.dll")]
         private static extern IntPtr Interpolate(int[] rfArr, int rfArrSize, int[] sampleArr, int sampleArrSize,
             int maxFieldValue, int d,
             out int retPSize, out int retQSize);
 
-        [DllImport("NTLLib.dll")]
+        [DllImport("libs/NTLLib.dll")]
         private static extern void DeleteArrPtr(IntPtr ptr);
     }
 }
