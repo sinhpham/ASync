@@ -8,34 +8,32 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Collections.Concurrent;
 
 namespace ASync
 {
+    struct FileChunk
+    {
+        public int Offset { get; set; }
+        public int Length { get; set; }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            var _cp = new CharacteristicPolynomial(97);
+            var str = "1234567890";
 
-            var sa = new List<int> { 1, 2, 9, 12, 33 };
-            var sb = new List<int> { 1, 2, 9, 10, 12, 28 };
-            var xVal = new List<int> { -1, -2, -3, -4, -5 };
-
-            var cpa = _cp.Calc(sa, xVal);
-            var cpb = _cp.Calc(sb, xVal);
-            var cpaocpb = _cp.Div(cpa, cpb);
-
-            List<int> p;
-            List<int> q;
-            _cp.Interpolate(cpaocpb, xVal,
-                sa.Count - sb.Count,
-                out p, out q);
-
-            var pFactors = _cp.Factoring(p);
-            var qFactors = _cp.Factoring(q);
+            var hValues = new ConcurrentQueue<uint>();
+            var hValues2 = new ConcurrentQueue<uint>();
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+            {
+                FileHash.StreamToHashValues(ms, hValues);
+            }
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+            {
+                FileHash.StreamToHashValuesNaive(ms, hValues2);
+            }
         }
-
-        [DllImport("libs/NTLLib.dll")]
-        public static extern int testpi(int a);
     }
 }

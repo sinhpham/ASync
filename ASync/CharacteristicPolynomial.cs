@@ -9,13 +9,13 @@ namespace ASync
 {
     public class CharacteristicPolynomial
     {
-        public CharacteristicPolynomial(int maxFieldValue)
+        public CharacteristicPolynomial(int fieldOrder)
         {
-            _maxFieldValue = maxFieldValue;
+            _fieldOrder = fieldOrder;
         }
 
-        readonly int _maxFieldValue;
-        public int MaxFieldValue { get { return _maxFieldValue; } }
+        readonly int _fieldOrder;
+        public int FieldOrder { get { return _fieldOrder; } }
 
         public List<int> Calc(List<int> set, List<int> xValues)
         {
@@ -25,9 +25,9 @@ namespace ASync
                 var currValue = 1;
                 for (var i = 0; i < set.Count; ++i)
                 {
-                    currValue = (currValue * (x - set[i])) % MaxFieldValue;
+                    currValue = (currValue * (x - set[i])) % FieldOrder;
                 }
-                currValue += currValue < 0 ? MaxFieldValue : 0;
+                currValue += currValue < 0 ? FieldOrder : 0;
                 ret.Add(currValue);
             }
             return ret;
@@ -41,7 +41,7 @@ namespace ASync
             for (var i = 0; i < cpa.Count; ++i)
             {
                 var currRet = DivGF(cpa[i], cpb[i]);
-                currRet += currRet < 0 ? MaxFieldValue : 0;
+                currRet += currRet < 0 ? FieldOrder : 0;
                 ret.Add(currRet);
             }
             return ret;
@@ -54,7 +54,7 @@ namespace ASync
             var arr = coeff.ToArray();
 
             var rSize = 0;
-            var rPointer = Factoring(arr, coeff.Count, MaxFieldValue, out rSize);
+            var rPointer = Factoring(arr, coeff.Count, FieldOrder, out rSize);
 
             var retArray = new int[rSize];
             Marshal.Copy(rPointer, retArray, 0, rSize);
@@ -71,7 +71,7 @@ namespace ASync
             var pSize = 0;
             var qSize = 0;
 
-            var retPtr = Interpolate(rf.ToArray(), rf.Count, xValues.ToArray(), xValues.Count, MaxFieldValue, d, out pSize, out qSize);
+            var retPtr = Interpolate(rf.ToArray(), rf.Count, xValues.ToArray(), xValues.Count, FieldOrder, d, out pSize, out qSize);
 
             var pArr = new int[pSize];
             var qArr = new int[qSize];
@@ -95,7 +95,7 @@ namespace ASync
             }
 
             var ib = InversionGF(b);
-            return (a * ib) % MaxFieldValue;
+            return (a * ib) % FieldOrder;
         }
 
         private int InversionGF(int a)
@@ -104,7 +104,7 @@ namespace ASync
             // p should be a prime number
             var y1 = 1;
             var y2 = 0;
-            var currP = MaxFieldValue;
+            var currP = FieldOrder;
 
             while (a != 1)
             {
@@ -113,8 +113,8 @@ namespace ASync
                 var nextA = currP - q * a;
                 var nextP = a;
                 var nextY2 = y1;
-                var nextY1 = y2 - ((q * y1) % MaxFieldValue);
-                nextY1 += nextY1 < 0 ? MaxFieldValue : 0;
+                var nextY1 = y2 - ((q * y1) % FieldOrder);
+                nextY1 += nextY1 < 0 ? FieldOrder : 0;
 
                 a = nextA;
                 currP = nextP;
