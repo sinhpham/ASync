@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,10 +38,62 @@ namespace ASync
             return ret;
         }
 
+        public List<int> Factoring(List<int> coeff, int maxFiledValue)
+        {
+            var ret = new List<int>();
+
+            var arr = coeff.ToArray();
+
+            var rSize = 0;
+            var rPointer = Factoring(arr, coeff.Count, maxFiledValue, out rSize);
+
+            var retArray = new int[rSize];
+            Marshal.Copy(rPointer, retArray, 0, rSize);
+            DeleteArrPtr(rPointer);
+
+            foreach (var num in retArray)
+            {
+                ret.Add(num);
+            }
+            return ret;
+        }
+
+        public void Interpolate(List<int> rf, List<int> xValues, int maxFieldValue, out List<int> P, out List<int> Q)
+        {
+            var pSize = 0;
+            var qSize = 0;
+
+            var retPtr = Interpolate(rf.ToArray(), rf.Count, xValues.ToArray(), xValues.Count, maxFieldValue, 1, out pSize, out qSize);
+
+            var pArr = new int[pSize];
+            var qArr = new int[qSize];
+            Marshal.Copy(retPtr, pArr, 0, pSize);
+            Marshal.Copy(retPtr + pSize * 4, qArr, 0, qSize);
+
+            P = new List<int>();
+            Q = new List<int>();
+            foreach (var num in pArr)
+            {
+                P.Add(num);
+            }
+            foreach (var num in qArr)
+            {
+                Q.Add(num);
+            }
+
+            DeleteArrPtr(retPtr);
+        }
+
         private int DivGF(int a, int b, int p)
         {
             // Division over finite field 
             // p should be a prime number
+            if (b == 0)
+            {
+                // TODO: handle div 0
+                return 0;
+            }
+
             var ib = InversionGF(b, p);
             return (a * ib) % p;
         }
@@ -70,5 +123,16 @@ namespace ASync
             }
             return y1;
         }
+
+        [DllImport("NTLLib.dll")]
+        private static extern IntPtr Factoring(int[] array, int size, int maxFieldValue, out int returnArrSize);
+
+        [DllImport("NTLLib.dll")]
+        private static extern IntPtr Interpolate(int[] rfArr, int rfArrSize, int[] sampleArr, int sampleArrSize,
+            int maxFieldValue, int d,
+            out int retPSize, out int retQSize);
+
+        [DllImport("NTLLib.dll")]
+        private static extern void DeleteArrPtr(IntPtr ptr);
     }
 }
