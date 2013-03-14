@@ -40,7 +40,7 @@ namespace ASync
 
         public List<int> Factoring(List<int> coeff, int maxFiledValue)
         {
-            var ret = new List<int>();
+            
 
             var arr = coeff.ToArray();
 
@@ -51,10 +51,7 @@ namespace ASync
             Marshal.Copy(rPointer, retArray, 0, rSize);
             DeleteArrPtr(rPointer);
 
-            foreach (var num in retArray)
-            {
-                ret.Add(num);
-            }
+            var ret = new List<int>(retArray);
             return ret;
         }
 
@@ -72,16 +69,8 @@ namespace ASync
             Marshal.Copy(retPtr, pArr, 0, pSize);
             Marshal.Copy(retPtr + pSize * 4, qArr, 0, qSize);
 
-            P = new List<int>();
-            Q = new List<int>();
-            foreach (var num in pArr)
-            {
-                P.Add(num);
-            }
-            foreach (var num in qArr)
-            {
-                Q.Add(num);
-            }
+            P = new List<int>(pArr);
+            Q = new List<int>(qArr);
 
             DeleteArrPtr(retPtr);
         }
