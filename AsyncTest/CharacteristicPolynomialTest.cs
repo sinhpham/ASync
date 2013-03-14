@@ -38,7 +38,10 @@ namespace AsyncTest
             CollectionAssert.AreEqual(new List<int> { 58, 19, 89, 77, 4 }, cpa);
             CollectionAssert.AreEqual(new List<int> { 15, 54, 68, 77, 50 }, cpb);
             CollectionAssert.AreEqual(new List<int> { 75, 74, 17, 1, 35 }, cpaocpb);
-            // TODO: assert p, q, factors
+            CollectionAssert.AreEqual(new List<int> { 64, 1 }, p);
+            CollectionAssert.AreEqual(new List<int> { 86, 59, 1 }, q);
+            CollectionAssert.AreEqual(new List<int> { 33 }, pFactors);
+            CollectionAssert.AreEqual(new List<int> { 10,28 }, qFactors);
         }
 
         [TestMethod]
@@ -66,7 +69,10 @@ namespace AsyncTest
             CollectionAssert.AreEqual(new List<int> { 3, 49, 32, 47 }, cpa);
             CollectionAssert.AreEqual(new List<int> { 13, 45, 58, 55 }, cpb);
             CollectionAssert.AreEqual(new List<int> { 26, 13, 56, 24 }, cpaocpb);
-            // TODO: assert p, q, factors
+            CollectionAssert.AreEqual(new List<int> { 38, 46, 1 }, p);
+            CollectionAssert.AreEqual(new List<int> { 60, 1 }, q);
+            CollectionAssert.AreEqual(new List<int> { 2, 19 }, pFactors);
+            CollectionAssert.AreEqual(new List<int> { 7 }, qFactors);
         }
     }
 }
