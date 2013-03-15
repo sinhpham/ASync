@@ -10,6 +10,11 @@ namespace ASync
 {
     public class LocalMaxima
     {
+        public LocalMaxima(int localMaximaH)
+        {
+            _localMaximaH = localMaximaH;
+        }
+
         public void StressTest()
         {
             var rnd = new Random(0);
@@ -169,9 +174,15 @@ namespace ASync
                     currBlockEnd = list.Count - 1;
                 }
                 // Construct current block
+                
                 for (var i = currBlockStart; i <= currBlockEnd; ++i)
                 {
                     currBlock[i - currBlockStart] = list[i];
+                }
+                var afterEndIdx = currBlockEnd - currBlockStart + 1;
+                if (afterEndIdx < currBlock.Length)
+                {
+                    Array.Clear(currBlock, afterEndIdx, currBlock.Length - afterEndIdx);
                 }
 
                 var currLiveCanIdx = LocalMaxima2Block(currBlock, currBlockStart, currBlockGreedySeq,
@@ -183,11 +194,11 @@ namespace ASync
                 {
                     for (var i = 0; i < prevBlockGreedySeq.Count; ++i)
                     {
-                        if (prevBlockGreedySeq[i].Key < currLiveCanIdx - LocalMaximaH)
+                        if (prevBlockGreedySeq[i].Key < currLiveCanIdx +1)
                         {
                             break;
                         }
-                        if (prevBlockGreedySeq[i].Value >= list[currLiveCanIdx])
+                        if (prevBlockGreedySeq[i].Value >= currBlock[currLiveCanIdx])
                         {
                             currLiveCanIdx = -1;
                             break;
@@ -196,10 +207,11 @@ namespace ASync
                 }
 
                 prevBlockGreedySeq = currBlockGreedySeq;
+                currBlockGreedySeq = new List<KeyValuePair<int, int>>();
                 liveCanPrevBlockIdx = currLiveCanIdx;
                 if (liveCanPrevBlockIdx != -1)
                 {
-                    liveCanPrevBlockVal = list[liveCanPrevBlockIdx];
+                    liveCanPrevBlockVal = currBlock[liveCanPrevBlockIdx];
                 }
 
                 currBlockStart += LocalMaximaH + 1;
@@ -244,7 +256,6 @@ namespace ASync
                 OrdinaryRun(currBlock, liveCanPrevBlockIdx + LocalMaximaH + 1 - prevBlock.Count, currBlockEnd - 1, currGreedySeq, ref currLiveCanIdx);
 
                 var lastInCurrGreedySeq = currGreedySeq[currGreedySeq.Count - 1].Value;
-                // In case of modIdx > currBlockEnd (last block could be shorter, 
                 var modIdx = liveCanPrevBlockIdx + LocalMaximaH - prevBlock.Count;
 
                 if (lastInCurrGreedySeq >= liveCanPrevBlockVal)
@@ -290,14 +301,14 @@ namespace ASync
                                 break;
                             }
                         }
-                        if (currBlock[modIdx] == lastValue)
+                        else if (currBlock[modIdx] == lastValue)
                         {
                             // Equal: kill the current candidate but don't add to the greedy sequence.
                             currLiveCanIdx = -1;
                         }
                         --modIdx;
                     }
-                    modIdx = modIdx < currGreedySeq[currGreedySeq.Count - 1].Key ? modIdx : currGreedySeq[currGreedySeq.Count - 1].Key - 1;
+                    
                     OrdinaryRun(currBlock, currBlockStart, modIdx, currGreedySeq, ref currLiveCanIdx);
                 }
                 if (liveCanPrevBlockIdx != -1)
