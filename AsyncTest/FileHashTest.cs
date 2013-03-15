@@ -13,20 +13,30 @@ namespace AsyncTest
         [TestMethod]
         public void FileHashCorrectness()
         {
-            var str = "1234567890";
-
-            var ret = new ConcurrentQueue<uint>();
-            var ret2 = new ConcurrentQueue<uint>();
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+            for (var i = 2; i < 100; ++i)
             {
-                FileHash.StreamToHashValues(ms, ret);
-            }
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
-            {
-                FileHash.StreamToHashValuesNaive(ms, ret2);
-            }
+                var sb = new StringBuilder();
+                for (var j = 0; j < i; ++j)
+                {
+                    sb.Append(j);
+                }
+                var str = sb.ToString();
 
-            CollectionAssert.AreEqual(ret, ret2);
+                var fh = new FileHash(2);
+
+                var ret = new ConcurrentQueue<uint>();
+                var ret2 = new ConcurrentQueue<uint>();
+                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+                {
+                    fh.StreamToHashValues(ms, ret);
+                }
+                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+                {
+                    fh.StreamToHashValuesNaive(ms, ret2);
+                }
+
+                CollectionAssert.AreEqual(ret, ret2);
+            }
         }
     }
 }

@@ -22,18 +22,7 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            var str = "1234567890";
-
-            var hValues = new ConcurrentQueue<uint>();
-            var hValues2 = new ConcurrentQueue<uint>();
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
-            {
-                FileHash.StreamToHashValues(ms, hValues);
-            }
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
-            {
-                FileHash.StreamToHashValuesNaive(ms, hValues2);
-            }
+            
         }
     }
 }

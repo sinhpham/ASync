@@ -10,11 +10,17 @@ namespace ASync
 {
     public class FileHash
     {
-        const int BufferSize = 4;
-        const int HashBlock = 3;
-        const int LocalMaximaH = 512;
+        public FileHash(int hashBlock)
+        {
+            _hashBlock = hashBlock;
+        }
 
-        public static void StreamToHashValuesNaive(Stream inputStream, ConcurrentQueue<uint> hashValues)
+        const int BufferSize = 4;
+
+        readonly int _hashBlock;
+        public int HashBlock { get { return _hashBlock; } }
+
+        public void StreamToHashValuesNaive(Stream inputStream, ConcurrentQueue<uint> hashValues)
         {
             // For testing purpose.
             var buffer = ReadFully(inputStream);
@@ -27,10 +33,9 @@ namespace ASync
             }
         }
 
-        public static void StreamToHashValues(Stream inputStream, ConcurrentQueue<uint> hashValues)
+        public void StreamToHashValues(Stream inputStream, ConcurrentQueue<uint> hashValues)
         {
             // Read the source file into a byte array. 
-
             var prevBuffer = new byte[BufferSize];
             var buffer = new byte[BufferSize];
             var starting = true;
@@ -40,11 +45,6 @@ namespace ASync
 
             while ((byteRead = inputStream.Read(buffer, 0, BufferSize)) != 0)
             {
-                //if (byteRead < BufferSize)
-                //{
-                //    // Zero the remaining space.
-                //    Array.Clear(buffer, byteRead, BufferSize - byteRead);
-                //}
                 var hashEndIdx = -1;
                 if (starting)
                 {
@@ -73,7 +73,7 @@ namespace ASync
             }
         }
 
-        public static byte[] ReadFully(Stream input)
+        private static byte[] ReadFully(Stream input)
         {
             byte[] buffer = new byte[16 * 1024];
             using (var ms = new MemoryStream())
