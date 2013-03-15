@@ -22,9 +22,8 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            var list = new List<int> { 9, 21, 19, 13, 26, 18, 18, 25, 24, 16, 17, 35, 37, 42 };
-            var lm = new LocalMaxima(2);
-            var t = lm.LocalMaxima2(list);
+            LocalMaxima.StressTest();
+        
         }
     }
 }

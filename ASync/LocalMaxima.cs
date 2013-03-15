@@ -15,23 +15,24 @@ namespace ASync
             _localMaximaH = localMaximaH;
         }
 
-        public void StressTest()
+        public static void StressTest()
         {
             var rnd = new Random(0);
 
-            var start = 1000000;
-            var count = 1000;
+            var start = 0;
+            var count = 100000;
 
+            var lm2 = new LocalMaxima(1000);
             for (var i = start; i <= start + count; ++i)
             {
                 var list = new List<int>();
                 for (var j = 0; j < i; ++j)
                 {
-                    list.Add(rnd.Next(0, 1000000000));
+                    list.Add(rnd.Next(0, 1000));
                 }
                 //var x0 = LocalMaximaNaive(list);
                 var x1 = LocalMaximaNaive(list);
-                var x2 = LocalMaxima2(list);
+                var x2 = lm2.LocalMaxima2(list);
 
 
 
@@ -252,25 +253,19 @@ namespace ASync
             else
             {
                 // Live candidate in the prev block, do modified run on this block
-                // Ordinary until m + h
-                OrdinaryRun(currBlock, liveCanPrevBlockIdx + LocalMaximaH + 1 - prevBlock.Count, currBlockEnd - 1, currGreedySeq, ref currLiveCanIdx);
+                // Ordinary until m + h (exclusive)
+                OrdinaryRun(currBlock, liveCanPrevBlockIdx, currBlockEnd - 1, currGreedySeq, ref currLiveCanIdx);
 
                 var lastInCurrGreedySeq = currGreedySeq[currGreedySeq.Count - 1].Value;
-                var modIdx = liveCanPrevBlockIdx + LocalMaximaH - prevBlock.Count;
+                var modIdx = liveCanPrevBlockIdx - 1;
 
                 if (lastInCurrGreedySeq >= liveCanPrevBlockVal)
                 {
                     // F(g) >= F(m)
                     while (modIdx >= currBlockStart)
                     {
-                        if (currBlock[modIdx] == liveCanPrevBlockVal)
-                        {
-                            // Kill m
-                            liveCanPrevBlockIdx = -1;
-                            --modIdx;
-                            break;
-                        }
-                        if (currBlock[modIdx] > liveCanPrevBlockVal)
+                        
+                        if (currBlock[modIdx] >= liveCanPrevBlockVal)
                         {
                             // Kill m
                             liveCanPrevBlockIdx = -1;

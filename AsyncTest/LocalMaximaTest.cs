@@ -31,5 +31,16 @@ namespace AsyncTest
 
             CollectionAssert.AreEqual(new List<int> { 1, 4, 15, 26, 31 }, pos.ToList());
         }
+
+        [TestMethod]
+        public void LocalMaximaTestCorrectness2()
+        {
+            var list = new List<int> { 1, 1, 10, 1, 1, 1, 1, 10, 10 };
+            var lm = new LocalMaxima(5);
+            var ret = lm.LocalMaxima2(list);
+            var pos = ret.Select(kvp => kvp.Key);
+
+            CollectionAssert.AreEqual(new List<int> {  }, pos.ToList());
+        }
     }
 }
