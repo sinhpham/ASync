@@ -24,8 +24,9 @@ namespace AsyncTest
 
                 var fh = new FileHash(2);
 
-                var ret = new ConcurrentQueue<uint>();
-                var ret2 = new ConcurrentQueue<uint>();
+                var ret = new BlockingCollection<uint>();
+                var ret2 = new BlockingCollection<uint>();
+
                 using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
                 {
                     fh.StreamToHashValues(ms, ret);

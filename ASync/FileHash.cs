@@ -20,7 +20,7 @@ namespace ASync
         readonly int _hashBlock;
         public int HashBlock { get { return _hashBlock; } }
 
-        public void StreamToHashValuesNaive(Stream inputStream, ConcurrentQueue<uint> hashValues)
+        public void StreamToHashValuesNaive(Stream inputStream, BlockingCollection<uint> hashValues)
         {
             // For testing purpose.
             var buffer = ReadFully(inputStream);
@@ -28,12 +28,12 @@ namespace ASync
             while (offset + HashBlock <= buffer.Length)
             {
                 var hv = Adler32Checksum.Calculate(buffer, offset, HashBlock);
-                hashValues.Enqueue(hv);
+                hashValues.Add(hv);
                 ++offset;
             }
         }
 
-        public void StreamToHashValues(Stream inputStream, ConcurrentQueue<uint> hashValues)
+        public void StreamToHashValues(Stream inputStream, BlockingCollection<uint> hashValues)
         {
             // Read the source file into a byte array. 
             var prevBuffer = new byte[BufferSize];
@@ -49,7 +49,7 @@ namespace ASync
                 if (starting)
                 {
                     var hv = Adler32Checksum.Calculate(buffer, 0, HashBlock);
-                    hashValues.Enqueue(hv);
+                    hashValues.Add(hv);
                     prevHashValue = hv;
                     starting = false;
                     hashEndIdx = HashBlock - 1;
@@ -62,7 +62,7 @@ namespace ASync
                     var outByte = hashStartIdx < 0 ? prevBuffer[BufferSize + hashStartIdx] : buffer[hashStartIdx];
                     var hv = Adler32Checksum.Roll(outByte, buffer[hashEndIdx], prevHashValue, HashBlock);
 
-                    hashValues.Enqueue(hv);
+                    hashValues.Add(hv);
                     prevHashValue = hv;
                 }
 

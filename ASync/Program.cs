@@ -22,6 +22,50 @@ namespace ASync
     {
         static void Main(string[] args)
         {
+            var positions = new BlockingCollection<int>();
+            var outHashValues = new BlockingCollection<uint>();
+
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    var str = Console.ReadLine();
+                    var num = 0;
+                    if (int.TryParse(str, out num))
+                    {
+                        positions.Add(num);
+                    }
+                    else
+                    {
+                        positions.CompleteAdding();
+                    }
+                }
+            });
+            Task.Run(() =>
+            {
+                foreach (var i in outHashValues.GetConsumingEnumerable())
+                {
+                    Console.WriteLine("Hash values: {0}", i);
+                }
+            });
+
+            var mmh = new MurmurHash3_x86_32();
+            var fph = new FileParitionHash(mmh);
+            
+
+            var strStream = "abcdef";
+
+            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(strStream)))
+            {
+                fph.ProcessStream(ms, positions, outHashValues);
+            }
+
+            var h1 = BitConverter.ToUInt32(mmh.ComputeHash(Encoding.UTF8.GetBytes("abc"), 0, 3), 0);
+            var h2 = BitConverter.ToUInt32(mmh.ComputeHash(Encoding.UTF8.GetBytes("def"), 0, 3), 0);
+        }
+
+        private static void TestLM()
+        {
             var inputList = new BlockingCollection<int>();
             var outList = new BlockingCollection<int>();
 

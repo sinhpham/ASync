@@ -55,6 +55,7 @@
     <Compile Include="CharacteristicPolynomialTest.cs" />
     <Compile Include="FileHashTest.cs" />
     <Compile Include="LocalMaximaTest.cs" />
+    <Compile Include="FilePartitionHashTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ASync\ASync.csproj">
