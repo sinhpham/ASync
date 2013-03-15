@@ -14,6 +14,7 @@ namespace ASync
         {
             _hFuncs = hashFunctions;
             _bitArray = new BitArray(bitLength);
+            Count = 0;
         }
 
         public void Add(byte[] buffer, int offset, int count)
@@ -23,6 +24,7 @@ namespace ASync
                 var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(buffer, offset, count), 0) % BitLength);
                 _bitArray[idx] = true;
             }
+            Count++;
         }
 
         public bool Contains(byte[] buffer, int offset, int count)
@@ -42,5 +44,6 @@ namespace ASync
         ICollection<HashAlgorithm> _hFuncs;
         public int BitLength { get { return _bitArray.Length; } }
         public int NHashFuncs { get { return _hFuncs.Count; } }
+        public int Count { get; private set; }
     }
 }
