@@ -3,6 +3,7 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using ASync;
+using System.Collections.Concurrent;
 
 namespace AsyncTest
 {
@@ -25,22 +26,38 @@ namespace AsyncTest
                 10, 10, 10,
                 10, 20
             };
-            var lm = new LocalMaxima(2);
-            var ret = lm.LocalMaxima2(list);
-            var pos = ret.Select(kvp => kvp.Key);
+            var inList = new BlockingCollection<int>();
+            foreach (var item in list)
+            {
+                inList.Add(item);
+            }
+            inList.CompleteAdding();
+            var outList = new BlockingCollection<int>();
 
-            CollectionAssert.AreEqual(new List<int> { 1, 4, 15, 26, 31 }, pos.ToList());
+            var lm = new LocalMaxima(2);
+            lm.CalcUsingBlockAlgo(inList, outList);
+            var ret = outList.ToList();
+
+            CollectionAssert.AreEqual(new List<int> { 1, 4, 15, 26, 31 }, ret);
         }
 
         [TestMethod]
         public void LocalMaximaTestCorrectness2()
         {
             var list = new List<int> { 1, 1, 10, 1, 1, 1, 1, 10, 10 };
-            var lm = new LocalMaxima(5);
-            var ret = lm.LocalMaxima2(list);
-            var pos = ret.Select(kvp => kvp.Key);
+            var inList = new BlockingCollection<int>();
+            foreach (var item in list)
+            {
+                inList.Add(item);
+            }
+            inList.CompleteAdding();
+            var outList = new BlockingCollection<int>();
 
-            CollectionAssert.AreEqual(new List<int> {  }, pos.ToList());
+            var lm = new LocalMaxima(5);
+            lm.CalcUsingBlockAlgo(inList, outList);
+            var ret = outList.ToList();
+
+            CollectionAssert.AreEqual(new List<int> { }, ret);
         }
     }
 }

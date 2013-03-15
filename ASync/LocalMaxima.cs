@@ -15,6 +15,10 @@ namespace ASync
             _localMaximaH = localMaximaH;
         }
 
+        private readonly int _localMaximaH = 1000;
+        public int LocalMaximaH { get { return _localMaximaH; } }
+        private int BlockSize { get { return LocalMaximaH + 1; } }
+
         public static void StressTest()
         {
             var rnd = new Random(0);
@@ -22,7 +26,8 @@ namespace ASync
             var start = 0;
             var count = 100000;
 
-            var lm2 = new LocalMaxima(1000);
+            var lm = new LocalMaxima(1000);
+
             for (var i = start; i <= start + count; ++i)
             {
                 var list = new List<int>();
@@ -31,8 +36,8 @@ namespace ASync
                     list.Add(rnd.Next(0, 1000));
                 }
                 //var x0 = LocalMaximaNaive(list);
-                var x1 = LocalMaximaNaive(list);
-                var x2 = lm2.LocalMaxima2(list);
+                var x1 = lm.CalcUsingNaive(list);
+                var x2 = lm.CalcUsingBlockAlgo(list);
 
 
 
@@ -64,16 +69,14 @@ namespace ASync
             return true;
         }
 
-        static List<KeyValuePair<int, int>> LocalMaximaNaive(List<int> list)
+        List<KeyValuePair<int, int>> CalcUsingNaive(List<int> list)
         {
             var ret = new List<KeyValuePair<int, int>>();
-
-            var h = 1000;
 
             for (var i = 0; i < list.Count; ++i)
             {
                 var isOk = true;
-                for (var j = i - h; j <= i + h; ++j)
+                for (var j = i - LocalMaximaH; j <= i + LocalMaximaH; ++j)
                 {
                     if (j < 0 || j >= list.Count || j == i)
                     {
@@ -93,12 +96,10 @@ namespace ASync
             return ret;
         }
 
-        static List<KeyValuePair<int, int>> LocalMaxima1(List<int> list)
+        List<KeyValuePair<int, int>> CalcUsingGreedySeqAlgo(List<int> list)
         {
             // Local maxima: F[i] max in [F[i - h], F[i + h]]
             var ret = new List<KeyValuePair<int, int>>();
-
-            var h = 1000;
 
             var isCandidate = true;
             var greedyList = new List<KeyValuePair<int, int>>();
@@ -127,7 +128,7 @@ namespace ASync
                 }
 
 
-                if (greedyList.Count > 0 && greedyList[0].Key == lIdx - h)
+                if (greedyList.Count > 0 && greedyList[0].Key == lIdx - LocalMaximaH)
                 {
                     if (isCandidate)
                     {
@@ -140,7 +141,7 @@ namespace ASync
                 {
                     isCandidate = lastRemovedValueIsEqual ? false : true;
                 }
-                if (greedyList.Count > 0 && greedyList[0].Key == lIdx - h)
+                if (greedyList.Count > 0 && greedyList[0].Key == lIdx - LocalMaximaH)
                 {
                     greedyList.RemoveAt(0);
                 }
@@ -154,89 +155,91 @@ namespace ASync
             return ret;
         }
 
-        public List<KeyValuePair<int, int>> LocalMaxima2(List<int> list)
+        List<KeyValuePair<int, int>> CalcUsingBlockAlgo(List<int> list)
         {
-            var ret = new ConcurrentQueue<KeyValuePair<int, int>>();
+            var retPos = new BlockingCollection<int>(new ConcurrentQueue<int>());
 
-            var currBlockStart = 0;
-            var currBlockEnd = LocalMaximaH;
+            var inList = new BlockingCollection<int>();
+            foreach (var i in list)
+            {
+                inList.Add(i);
+            }
+            inList.CompleteAdding();
+
+            CalcUsingBlockAlgo(inList, retPos);
+
+            return retPos.Select(pos => new KeyValuePair<int, int>(pos, list[pos])).ToList();
+        }
+
+        public void CalcUsingBlockAlgo(BlockingCollection<int> inputList, BlockingCollection<int> outputPos)
+        {
+            var currPos = 0;
 
             var liveCanPrevBlockIdx = -1;
             var liveCanPrevBlockVal = 0;
             var currBlockGreedySeq = new List<KeyValuePair<int, int>>();
             var prevBlockGreedySeq = new List<KeyValuePair<int, int>>();
-            var currBlock = new int[LocalMaximaH + 1];
-            var prevBlock = new int[LocalMaximaH + 1];
+            var currBlock = new int[BlockSize];
+            var prevBlock = new int[BlockSize];
+            var currWritingIdx = 0;
 
-            while (currBlockStart < list.Count)
+            foreach (var item in inputList.GetConsumingEnumerable())
             {
-                if (currBlockEnd > list.Count - 1)
-                {
-                    currBlockEnd = list.Count - 1;
-                }
-                // Construct current block
-                
-                for (var i = currBlockStart; i <= currBlockEnd; ++i)
-                {
-                    currBlock[i - currBlockStart] = list[i];
-                }
-                var afterEndIdx = currBlockEnd - currBlockStart + 1;
-                if (afterEndIdx < currBlock.Length)
-                {
-                    Array.Clear(currBlock, afterEndIdx, currBlock.Length - afterEndIdx);
-                }
+                // Constructing current block.
+                currBlock[currWritingIdx] = item;
+                currWritingIdx++;
 
-                var currLiveCanIdx = LocalMaxima2Block(currBlock, currBlockStart, currBlockGreedySeq,
-                    prevBlock, ref liveCanPrevBlockIdx, liveCanPrevBlockVal,
-                    ret);
-
-                // Move on to the next block.
-                if (currLiveCanIdx != -1)
+                if (currWritingIdx == BlockSize)
                 {
-                    for (var i = 0; i < prevBlockGreedySeq.Count; ++i)
+                    var currLiveCanIdx = ProcessOneBlock(currBlock, currPos, currBlockGreedySeq,
+                        prevBlock, liveCanPrevBlockIdx, liveCanPrevBlockVal, prevBlockGreedySeq,
+                        outputPos);
+
+                    // Move on to the next block.
+                    prevBlockGreedySeq = currBlockGreedySeq;
+                    currBlockGreedySeq = new List<KeyValuePair<int, int>>();
+                    liveCanPrevBlockIdx = currLiveCanIdx;
+                    if (liveCanPrevBlockIdx != -1)
                     {
-                        if (prevBlockGreedySeq[i].Key < currLiveCanIdx +1)
-                        {
-                            break;
-                        }
-                        if (prevBlockGreedySeq[i].Value >= currBlock[currLiveCanIdx])
-                        {
-                            currLiveCanIdx = -1;
-                            break;
-                        }
+                        liveCanPrevBlockVal = currBlock[liveCanPrevBlockIdx];
                     }
-                }
 
-                prevBlockGreedySeq = currBlockGreedySeq;
-                currBlockGreedySeq = new List<KeyValuePair<int, int>>();
+                    var temp = currBlock;
+                    currBlock = prevBlock;
+                    prevBlock = temp;
+
+                    currWritingIdx = 0;
+                    currPos += BlockSize;
+                }
+            }
+            if (currWritingIdx != 0)
+            {
+                // Handle non-full last block.
+                // Zero the remaining array.
+                Array.Clear(currBlock, currWritingIdx, currBlock.Length - currWritingIdx);
+
+                var currLiveCanIdx = ProcessOneBlock(currBlock, currPos, currBlockGreedySeq,
+                    prevBlock, liveCanPrevBlockIdx, liveCanPrevBlockVal, prevBlockGreedySeq,
+                    outputPos);
+
                 liveCanPrevBlockIdx = currLiveCanIdx;
                 if (liveCanPrevBlockIdx != -1)
                 {
                     liveCanPrevBlockVal = currBlock[liveCanPrevBlockIdx];
                 }
-
-                currBlockStart += LocalMaximaH + 1;
-                currBlockEnd += LocalMaximaH + 1;
-
-                var temp = currBlock;
-                currBlock = prevBlock;
-                prevBlock = temp;
+                currPos += BlockSize;
             }
             if (liveCanPrevBlockIdx != -1)
             {
-                var ans = new KeyValuePair<int, int>(currBlockStart - prevBlock.Length + liveCanPrevBlockIdx, liveCanPrevBlockVal);
-                ret.Enqueue(ans);
+                outputPos.Add(currPos - prevBlock.Length + liveCanPrevBlockIdx);
             }
-
-            return ret.ToList();
+            outputPos.CompleteAdding();
         }
 
-        private readonly int _localMaximaH = 1000;
-        public int LocalMaximaH { get { return _localMaximaH; } }
-
-        private int LocalMaxima2Block(IList<int> currBlock, int currBlockStartPos, List<KeyValuePair<int, int>> currGreedySeq,
-            IList<int> prevBlock, ref int liveCanPrevBlockIdx, int liveCanPrevBlockVal,
-            ConcurrentQueue<KeyValuePair<int, int>> localMaximaPos)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int ProcessOneBlock(IList<int> currBlock, int currBlockStartPos, List<KeyValuePair<int, int>> currGreedySeq,
+            IList<int> prevBlock, int liveCanPrevBlockIdx, int liveCanPrevBlockVal, List<KeyValuePair<int, int>> prevGreddySeq,
+            BlockingCollection<int> localMaximaPos)
         {
             var currBlockStart = 0;
             var currBlockEnd = currBlock.Count - 1;
@@ -264,7 +267,6 @@ namespace ASync
                     // F(g) >= F(m)
                     while (modIdx >= currBlockStart)
                     {
-                        
                         if (currBlock[modIdx] >= liveCanPrevBlockVal)
                         {
                             // Kill m
@@ -273,7 +275,6 @@ namespace ASync
                         }
                         --modIdx;
                     }
-
                     OrdinaryRun(currBlock, currBlockStart, modIdx, currGreedySeq, ref currLiveCanIdx);
                 }
                 else
@@ -303,15 +304,32 @@ namespace ASync
                         }
                         --modIdx;
                     }
-                    
                     OrdinaryRun(currBlock, currBlockStart, modIdx, currGreedySeq, ref currLiveCanIdx);
                 }
+                // After the modified run, if the candidate in the previous block is still alive => add to output.
                 if (liveCanPrevBlockIdx != -1)
                 {
-                    var ans = new KeyValuePair<int, int>(currBlockStartPos - prevBlock.Count + liveCanPrevBlockIdx, liveCanPrevBlockVal);
-                    localMaximaPos.Enqueue(ans);
+                    localMaximaPos.Add(currBlockStartPos - prevBlock.Count + liveCanPrevBlockIdx);
                 }
             }
+
+            // Check if current candidate satisfies all applicable items in the previous block.
+            if (currLiveCanIdx != -1)
+            {
+                for (var i = 0; i < prevGreddySeq.Count; ++i)
+                {
+                    if (prevGreddySeq[i].Key < currLiveCanIdx + 1)
+                    {
+                        break;
+                    }
+                    if (prevGreddySeq[i].Value >= currBlock[currLiveCanIdx])
+                    {
+                        currLiveCanIdx = -1;
+                        break;
+                    }
+                }
+            }
+
             return currLiveCanIdx;
         }
 

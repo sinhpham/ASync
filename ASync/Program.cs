@@ -22,8 +22,36 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            LocalMaxima.StressTest();
-        
+            var inputList = new BlockingCollection<int>();
+            var outList = new BlockingCollection<int>();
+
+            Task.Run(() =>
+            {
+                while (true)
+                {
+                    var str = Console.ReadLine();
+                    var num = 0;
+                    if (int.TryParse(str, out num))
+                    {
+                        inputList.Add(num);
+                    }
+                    else
+                    {
+                        inputList.CompleteAdding();
+                    }
+                }
+            });
+
+            Task.Run(() =>
+            {
+                var lm = new LocalMaxima(2);
+                lm.CalcUsingBlockAlgo(inputList, outList);
+            });
+
+            foreach (var i in outList.GetConsumingEnumerable())
+            {
+                Console.WriteLine("Local max pos: {0}", i);
+            }
         }
     }
 }
