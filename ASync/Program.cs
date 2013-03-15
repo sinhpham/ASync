@@ -22,7 +22,8 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            
+            var lm = new LocalMaxima();
+            lm.StressTest();
         }
     }
 }
