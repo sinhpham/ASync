@@ -13,7 +13,7 @@ namespace AsyncTest
         [TestMethod]
         public void FileHashCorrectness()
         {
-            for (var i = 2; i < 100; ++i)
+            for (var i = 0; i < 100; ++i)
             {
                 var sb = new StringBuilder();
                 for (var j = 0; j < i; ++j)
@@ -22,7 +22,7 @@ namespace AsyncTest
                 }
                 var str = sb.ToString();
 
-                var fh = new FileHash(2);
+                var fh = new FileHash(5);
 
                 var ret = new BlockingCollection<uint>();
                 var ret2 = new BlockingCollection<uint>();
