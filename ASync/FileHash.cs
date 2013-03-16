@@ -24,11 +24,13 @@ namespace ASync
         public void StreamToHashValuesNaive(Stream inputStream, BlockingCollection<uint> hashValues)
         {
             // For testing purpose.
-            var buffer = ReadFully(inputStream);
+            var tempBuff = ReadFully(inputStream);
+            var buff = new byte[tempBuff.Length + HashBlock - 1];
+            Array.Copy(tempBuff, buff, tempBuff.Length);
             var offset = 0;
-            while (offset + HashBlock <= buffer.Length)
+            while (offset + HashBlock <= buff.Length)
             {
-                var hv = Adler32Checksum.Calculate(buffer, offset, HashBlock);
+                var hv = Adler32Checksum.Calculate(buff, offset, HashBlock);
                 hashValues.Add(hv);
                 ++offset;
             }
@@ -43,36 +45,59 @@ namespace ASync
             var prevHashValue = 0U;
 
             var byteRead = 0;
+            var currHashEndIdx = -1;
+            var hEndIdx = -1;
 
             while ((byteRead = inputStream.Read(buffer, 0, BufferSize)) != 0)
             {
-                var hashEndIdx = -1;
                 if (starting)
                 {
                     var hv = Adler32Checksum.Calculate(buffer, 0, HashBlock);
                     hashValues.Add(hv);
                     prevHashValue = hv;
                     starting = false;
-                    hashEndIdx = HashBlock - 1;
+                    currHashEndIdx = HashBlock - 1;
                 }
-                while (hashEndIdx != byteRead - 1)
+                if (byteRead < BufferSize)
                 {
-                    hashEndIdx += 1;
-                    var hashStartIdx = hashEndIdx - HashBlock;
-
-                    var outByte = hashStartIdx < 0 ? prevBuffer[BufferSize + hashStartIdx] : buffer[hashStartIdx];
-                    var hv = Adler32Checksum.Roll(outByte, buffer[hashEndIdx], prevHashValue, HashBlock);
-
-                    hashValues.Add(hv);
-                    prevHashValue = hv;
+                    Array.Clear(buffer, byteRead, BufferSize - byteRead);
                 }
+                hEndIdx = byteRead + HashBlock - 2;
 
+                while (currHashEndIdx < BufferSize - 1 && currHashEndIdx != hEndIdx)
+                {
+                    CalcForHashEndIndex(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
+                }
+                currHashEndIdx -= BufferSize;
+                hEndIdx -= BufferSize;
                 // Swap 2 buffers
                 var temp = buffer;
                 buffer = prevBuffer;
                 prevBuffer = temp;
             }
+            if (currHashEndIdx != hEndIdx)
+            {
+                // Need an empty final block.
+                Array.Clear(buffer, 0, BufferSize);
+                
+                while (currHashEndIdx != hEndIdx)
+                {
+                    CalcForHashEndIndex(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
+                }
+            }
             hashValues.CompleteAdding();
+        }
+
+        private void CalcForHashEndIndex(ref int currHashEndIdx, byte[] prevBuffer, byte[] buffer, ref uint prevHashValue, BlockingCollection<uint> hashValues)
+        {
+            currHashEndIdx += 1;
+            var hashStartIdx = currHashEndIdx - HashBlock;
+
+            var outByte = hashStartIdx < 0 ? prevBuffer[BufferSize + hashStartIdx] : buffer[hashStartIdx];
+            var hv = Adler32Checksum.Roll(outByte, buffer[currHashEndIdx], prevHashValue, HashBlock);
+
+            hashValues.Add(hv);
+            prevHashValue = hv;
         }
 
         private static byte[] ReadFully(Stream input)
