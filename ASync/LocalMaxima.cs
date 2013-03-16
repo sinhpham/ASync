@@ -159,10 +159,10 @@ namespace ASync
         {
             var retPos = new BlockingCollection<int>(new ConcurrentQueue<int>());
 
-            var inList = new BlockingCollection<int>();
+            var inList = new BlockingCollection<uint>();
             foreach (var i in list)
             {
-                inList.Add(i);
+                inList.Add((uint)i);
             }
             inList.CompleteAdding();
 
@@ -171,16 +171,16 @@ namespace ASync
             return retPos.Select(pos => new KeyValuePair<int, int>(pos, list[pos])).ToList();
         }
 
-        public void CalcUsingBlockAlgo(BlockingCollection<int> inputList, BlockingCollection<int> outputPos)
+        public void CalcUsingBlockAlgo(BlockingCollection<uint> inputList, BlockingCollection<int> outputPos)
         {
             var currPos = 0;
 
             var liveCanPrevBlockIdx = -1;
-            var liveCanPrevBlockVal = 0;
-            var currBlockGreedySeq = new List<KeyValuePair<int, int>>();
-            var prevBlockGreedySeq = new List<KeyValuePair<int, int>>();
-            var currBlock = new int[BlockSize];
-            var prevBlock = new int[BlockSize];
+            var liveCanPrevBlockVal = 0U;
+            var currBlockGreedySeq = new List<KeyValuePair<int, uint>>();
+            var prevBlockGreedySeq = new List<KeyValuePair<int, uint>>();
+            var currBlock = new uint[BlockSize];
+            var prevBlock = new uint[BlockSize];
             var currWritingIdx = 0;
 
             foreach (var item in inputList.GetConsumingEnumerable())
@@ -197,7 +197,7 @@ namespace ASync
 
                     // Move on to the next block.
                     prevBlockGreedySeq = currBlockGreedySeq;
-                    currBlockGreedySeq = new List<KeyValuePair<int, int>>();
+                    currBlockGreedySeq = new List<KeyValuePair<int, uint>>();
                     liveCanPrevBlockIdx = currLiveCanIdx;
                     if (liveCanPrevBlockIdx != -1)
                     {
@@ -237,15 +237,15 @@ namespace ASync
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int ProcessOneBlock(IList<int> currBlock, int currBlockStartPos, List<KeyValuePair<int, int>> currGreedySeq,
-            IList<int> prevBlock, int liveCanPrevBlockIdx, int liveCanPrevBlockVal, List<KeyValuePair<int, int>> prevGreddySeq,
+        private int ProcessOneBlock(IList<uint> currBlock, int currBlockStartPos, List<KeyValuePair<int, uint>> currGreedySeq,
+            IList<uint> prevBlock, int liveCanPrevBlockIdx, uint liveCanPrevBlockVal, List<KeyValuePair<int, uint>> prevGreddySeq,
             BlockingCollection<int> localMaximaPos)
         {
             var currBlockStart = 0;
             var currBlockEnd = currBlock.Count - 1;
 
             currGreedySeq.Clear();
-            currGreedySeq.Add(new KeyValuePair<int, int>(currBlockEnd, currBlock[currBlockEnd]));
+            currGreedySeq.Add(new KeyValuePair<int, uint>(currBlockEnd, currBlock[currBlockEnd]));
             var currLiveCanIdx = currBlockEnd;
 
             if (liveCanPrevBlockIdx == -1)
@@ -286,7 +286,7 @@ namespace ASync
                         if (currBlock[modIdx] > lastValue)
                         {
                             // Strictly greater than, add to the greedy sequence.
-                            currGreedySeq.Add(new KeyValuePair<int, int>(modIdx, currBlock[modIdx]));
+                            currGreedySeq.Add(new KeyValuePair<int, uint>(modIdx, currBlock[modIdx]));
                             lastValue = currBlock[modIdx];
                             currLiveCanIdx = modIdx;
                             if (currBlock[modIdx] >= liveCanPrevBlockVal)
@@ -334,7 +334,7 @@ namespace ASync
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void OrdinaryRun(IList<int> list, int start, int end, List<KeyValuePair<int, int>> currGreedySeq, ref int currLiveCanIdx)
+        private static void OrdinaryRun(IList<uint> list, int start, int end, List<KeyValuePair<int, uint>> currGreedySeq, ref int currLiveCanIdx)
         {
             var lastValue = currGreedySeq[currGreedySeq.Count - 1].Value;
             for (var i = end; i >= start; --i)
@@ -342,7 +342,7 @@ namespace ASync
                 if (list[i] > lastValue)
                 {
                     // Strictly greater than, add to the greedy sequence.
-                    currGreedySeq.Add(new KeyValuePair<int, int>(i, list[i]));
+                    currGreedySeq.Add(new KeyValuePair<int, uint>(i, list[i]));
                     lastValue = list[i];
                     currLiveCanIdx = i;
                     continue;

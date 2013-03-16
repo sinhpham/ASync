@@ -13,9 +13,10 @@ namespace ASync
         public FileHash(int hashBlock)
         {
             _hashBlock = hashBlock;
+            BufferSize = 2 * hashBlock;
         }
 
-        const int BufferSize = 4;
+        readonly int BufferSize;
 
         readonly int _hashBlock;
         public int HashBlock { get { return _hashBlock; } }
@@ -71,6 +72,7 @@ namespace ASync
                 buffer = prevBuffer;
                 prevBuffer = temp;
             }
+            hashValues.CompleteAdding();
         }
 
         private static byte[] ReadFully(Stream input)

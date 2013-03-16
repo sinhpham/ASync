@@ -22,51 +22,49 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            var positions = new BlockingCollection<int>();
-            var outHashValues = new BlockingCollection<uint>();
+            ProcessFile("abc.txt");
+        }
+
+        static void ProcessFile(string filename)
+        {
+            var rollingHash = new BlockingCollection<uint>();
+            var localMaximaPos = new BlockingCollection<int>();
+            var partitionHash = new BlockingCollection<uint>();
 
             Task.Run(() =>
             {
-                while (true)
+                using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var str = Console.ReadLine();
-                    var num = 0;
-                    if (int.TryParse(str, out num))
-                    {
-                        positions.Add(num);
-                    }
-                    else
-                    {
-                        positions.CompleteAdding();
-                    }
+                    var fh = new FileHash(1024);
+                    fh.StreamToHashValues(fs, rollingHash);
                 }
             });
+
             Task.Run(() =>
             {
-                foreach (var i in outHashValues.GetConsumingEnumerable())
+                var lm = new LocalMaxima(1024);
+                lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
+            });
+
+            Task.Run(() =>
+            {
+                var mmh = new MurmurHash3_x86_32();
+                var fph = new FileParitionHash(mmh);
+                using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    Console.WriteLine("Hash values: {0}", i);
+                    fph.ProcessStream(fs, localMaximaPos, partitionHash);
                 }
             });
 
-            var mmh = new MurmurHash3_x86_32();
-            var fph = new FileParitionHash(mmh);
-            
-
-            var strStream = "abcdef";
-
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(strStream)))
+            foreach (var i in partitionHash.GetConsumingEnumerable())
             {
-                fph.ProcessStream(ms, positions, outHashValues);
+                Console.WriteLine("File par hash: {0}", i);
             }
-
-            var h1 = BitConverter.ToUInt32(mmh.ComputeHash(Encoding.UTF8.GetBytes("abc"), 0, 3), 0);
-            var h2 = BitConverter.ToUInt32(mmh.ComputeHash(Encoding.UTF8.GetBytes("def"), 0, 3), 0);
         }
 
         private static void TestLM()
         {
-            var inputList = new BlockingCollection<int>();
+            var inputList = new BlockingCollection<uint>();
             var outList = new BlockingCollection<int>();
 
             Task.Run(() =>
@@ -77,7 +75,7 @@ namespace ASync
                     var num = 0;
                     if (int.TryParse(str, out num))
                     {
-                        inputList.Add(num);
+                        inputList.Add((uint)num);
                     }
                     else
                     {
