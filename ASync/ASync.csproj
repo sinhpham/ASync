@@ -44,6 +44,7 @@
     <Compile Include="Adler32Checksum.cs" />
     <Compile Include="BloomFilter.cs" />
     <Compile Include="CharacteristicPolynomial.cs" />
+    <Compile Include="DataChunk.cs" />
     <Compile Include="FileHash.cs" />
     <Compile Include="FileParitionHash.cs" />
     <Compile Include="Helper.cs" />
