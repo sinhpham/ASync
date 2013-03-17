@@ -24,8 +24,8 @@ namespace AsyncTest
 
                 var fh = new FileHash(5);
 
-                var ret = new BlockingCollectionDataChunk<uint>();
-                var ret2 = new BlockingCollectionDataChunk<uint>();
+                var ret = new BlockingCollectionDataChunk<uint>(2);
+                var ret2 = new BlockingCollectionDataChunk<uint>(3);
 
                 using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
                 {
@@ -50,8 +50,8 @@ namespace AsyncTest
 
             var fh = new FileHash(5);
 
-            var ret = new BlockingCollectionDataChunk<uint>();
-            var ret2 = new BlockingCollectionDataChunk<uint>();
+            var ret = new BlockingCollectionDataChunk<uint>(4);
+            var ret2 = new BlockingCollectionDataChunk<uint>(5);
 
             using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
             {

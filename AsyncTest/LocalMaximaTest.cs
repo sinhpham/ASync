@@ -26,13 +26,13 @@ namespace AsyncTest
                 10, 10, 10,
                 10, 20
             };
-            var inList = new BlockingCollectionDataChunk<uint>();
+            var inList = new BlockingCollectionDataChunk<uint>(3);
             foreach (var item in list)
             {
                 inList.Add((uint)item);
             }
             inList.CompleteAdding();
-            var outList = new BlockingCollectionDataChunk<int>();
+            var outList = new BlockingCollectionDataChunk<int>(3);
 
             var lm = new LocalMaxima(2);
             lm.CalcUsingBlockAlgo(inList, outList);
@@ -45,13 +45,13 @@ namespace AsyncTest
         public void LocalMaximaTestCorrectness2()
         {
             var list = new List<int> { 1, 1, 10, 1, 1, 1, 1, 10, 10 };
-            var inList = new BlockingCollectionDataChunk<uint>();
+            var inList = new BlockingCollectionDataChunk<uint>(2);
             foreach (var item in list)
             {
                 inList.Add((uint)item);
             }
             inList.CompleteAdding();
-            var outList = new BlockingCollectionDataChunk<int>();
+            var outList = new BlockingCollectionDataChunk<int>(2);
 
             var lm = new LocalMaxima(5);
             lm.CalcUsingBlockAlgo(inList, outList);

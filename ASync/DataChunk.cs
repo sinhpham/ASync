@@ -9,12 +9,20 @@ namespace ASync
 {
     public class DataChunk<T>
     {
-        const int BufferSize = 1024 * 4;
+        public DataChunk()
+            : this(4 * 1024) // Default buffer size
+        {
+        }
 
-        public T[] Data = new T[BufferSize];
+        public DataChunk(int bufferSize)
+        {
+            Data = new T[bufferSize];
+        }
+
+        public T[] Data;
         public int DataSize { get; private set; }
 
-        public bool IsFull { get { return DataSize == BufferSize; } }
+        public bool IsFull { get { return DataSize == Data.Length; } }
 
         public void Add(T item)
         {
@@ -29,6 +37,12 @@ namespace ASync
         {
             BlockingCollection = new BlockingCollection<DataChunk<T>>();
             _currChunk = new DataChunk<T>();
+        }
+
+        public BlockingCollectionDataChunk(int chunkSize)
+        {
+            BlockingCollection = new BlockingCollection<DataChunk<T>>();
+            _currChunk = new DataChunk<T>(chunkSize);
         }
 
         public BlockingCollection<DataChunk<T>> BlockingCollection { get; private set; }

@@ -15,8 +15,8 @@ namespace AsyncTest
         [TestMethod]
         public void FilePartitionHashTestCorrectness1()
         {
-            var positions = new BlockingCollectionDataChunk<int>();
-            var outHashValues = new BlockingCollectionDataChunk<uint>();
+            var positions = new BlockingCollectionDataChunk<int>(3);
+            var outHashValues = new BlockingCollectionDataChunk<uint>(3);
             var mmh = new MurmurHash3_x86_32();
             var fph = new FileParitionHash(mmh);
 
