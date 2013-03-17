@@ -15,8 +15,8 @@ namespace AsyncTest
         [TestMethod]
         public void FilePartitionHashTestCorrectness1()
         {
-            var positions = new BlockingCollection<int>();
-            var outHashValues = new BlockingCollection<uint>();
+            var positions = new BlockingCollectionDataChunk<int>();
+            var outHashValues = new BlockingCollectionDataChunk<uint>();
             var mmh = new MurmurHash3_x86_32();
             var fph = new FileParitionHash(mmh);
 
@@ -32,6 +32,7 @@ namespace AsyncTest
 
             var h1 = BitConverter.ToUInt32(mmh.ComputeHash(Encoding.UTF8.GetBytes(strStream), 0, 3), 0);
             var h2 = BitConverter.ToUInt32(mmh.ComputeHash(Encoding.UTF8.GetBytes(strStream), 3, 3), 0);
+
 
             CollectionAssert.AreEqual(new List<uint> { h1, h2 }, outHashValues.ToList());
         }

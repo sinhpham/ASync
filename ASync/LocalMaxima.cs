@@ -15,7 +15,7 @@ namespace ASync
             _localMaximaH = localMaximaH;
         }
 
-        private readonly int _localMaximaH = 1000;
+        private readonly int _localMaximaH;
         public int LocalMaximaH { get { return _localMaximaH; } }
         private int BlockSize { get { return LocalMaximaH + 1; } }
 
@@ -47,7 +47,7 @@ namespace ASync
                 //}
                 if (!Check(x1, x2))
                 {
-                    Console.WriteLine("Failed for localmaxima2");
+                    throw new InvalidOperationException("wrong ans");
                 }
                 Console.WriteLine("N list: {0} - N local maxima: {1}", list.Count, x1.Count);
             }
@@ -157,9 +157,9 @@ namespace ASync
 
         List<KeyValuePair<int, int>> CalcUsingBlockAlgo(List<int> list)
         {
-            var retPos = new BlockingCollection<int>(new ConcurrentQueue<int>());
+            var retPos = new BlockingCollectionDataChunk<int>();
 
-            var inList = new BlockingCollection<uint>();
+            var inList = new BlockingCollectionDataChunk<uint>();
             foreach (var i in list)
             {
                 inList.Add((uint)i);
@@ -168,10 +168,10 @@ namespace ASync
 
             CalcUsingBlockAlgo(inList, retPos);
 
-            return retPos.Select(pos => new KeyValuePair<int, int>(pos, list[pos])).ToList();
+            return retPos.ToList().Select(pos => new KeyValuePair<int, int>(pos, list[pos])).ToList();
         }
 
-        public void CalcUsingBlockAlgo(BlockingCollection<uint> inputList, BlockingCollection<int> outputPos)
+        public void CalcUsingBlockAlgo(BlockingCollectionDataChunk<uint> inputList, BlockingCollectionDataChunk<int> outputPos)
         {
             var currPos = 0;
 
@@ -183,33 +183,39 @@ namespace ASync
             var prevBlock = new uint[BlockSize];
             var currWritingIdx = 0;
 
-            foreach (var item in inputList.GetConsumingEnumerable())
+            foreach (var item in inputList.BlockingCollection.GetConsumingEnumerable())
             {
-                // Constructing current block.
-                currBlock[currWritingIdx] = item;
-                currWritingIdx++;
-
-                if (currWritingIdx == BlockSize)
+                var nItemLeft = item.DataSize;
+                while (nItemLeft != 0)
                 {
-                    var currLiveCanIdx = ProcessOneBlock(currBlock, currPos, currBlockGreedySeq,
-                        prevBlock, liveCanPrevBlockIdx, liveCanPrevBlockVal, prevBlockGreedySeq,
-                        outputPos);
+                    // Constructing current block.
+                    var copyLength = Math.Min(nItemLeft, BlockSize - currWritingIdx);
+                    Array.Copy(item.Data, item.DataSize - nItemLeft, currBlock, currWritingIdx, copyLength);
+                    nItemLeft -= copyLength;
+                    currWritingIdx += copyLength;
 
-                    // Move on to the next block.
-                    prevBlockGreedySeq = currBlockGreedySeq;
-                    currBlockGreedySeq = new List<KeyValuePair<int, uint>>();
-                    liveCanPrevBlockIdx = currLiveCanIdx;
-                    if (liveCanPrevBlockIdx != -1)
+                    if (currWritingIdx == BlockSize)
                     {
-                        liveCanPrevBlockVal = currBlock[liveCanPrevBlockIdx];
+                        var currLiveCanIdx = ProcessOneBlock(currBlock, currPos, currBlockGreedySeq,
+                            prevBlock, liveCanPrevBlockIdx, liveCanPrevBlockVal, prevBlockGreedySeq,
+                            outputPos);
+
+                        // Move on to the next block.
+                        prevBlockGreedySeq = currBlockGreedySeq;
+                        currBlockGreedySeq = new List<KeyValuePair<int, uint>>();
+                        liveCanPrevBlockIdx = currLiveCanIdx;
+                        if (liveCanPrevBlockIdx != -1)
+                        {
+                            liveCanPrevBlockVal = currBlock[liveCanPrevBlockIdx];
+                        }
+
+                        var temp = currBlock;
+                        currBlock = prevBlock;
+                        prevBlock = temp;
+
+                        currWritingIdx = 0;
+                        currPos += BlockSize;
                     }
-
-                    var temp = currBlock;
-                    currBlock = prevBlock;
-                    prevBlock = temp;
-
-                    currWritingIdx = 0;
-                    currPos += BlockSize;
                 }
             }
             if (currWritingIdx != 0)
@@ -239,7 +245,7 @@ namespace ASync
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int ProcessOneBlock(IList<uint> currBlock, int currBlockStartPos, List<KeyValuePair<int, uint>> currGreedySeq,
             IList<uint> prevBlock, int liveCanPrevBlockIdx, uint liveCanPrevBlockVal, List<KeyValuePair<int, uint>> prevGreddySeq,
-            BlockingCollection<int> localMaximaPos)
+            BlockingCollectionDataChunk<int> localMaximaPos)
         {
             var currBlockStart = 0;
             var currBlockEnd = currBlock.Count - 1;

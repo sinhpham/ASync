@@ -24,8 +24,8 @@ namespace AsyncTest
 
                 var fh = new FileHash(5);
 
-                var ret = new BlockingCollection<uint>();
-                var ret2 = new BlockingCollection<uint>();
+                var ret = new BlockingCollectionDataChunk<uint>();
+                var ret2 = new BlockingCollectionDataChunk<uint>();
 
                 using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
                 {
@@ -35,9 +35,11 @@ namespace AsyncTest
                 {
                     fh.StreamToHashValuesNaive(ms, ret2);
                 }
+                var retList = ret.ToList();
+                var retList2 = ret2.ToList();
 
-                Assert.AreEqual(ret.Count, str.Length);
-                CollectionAssert.AreEqual(ret, ret2);
+                Assert.AreEqual(retList.Count, str.Length);
+                CollectionAssert.AreEqual(retList, retList2);
             }
         }
 
@@ -48,8 +50,8 @@ namespace AsyncTest
 
             var fh = new FileHash(5);
 
-            var ret = new BlockingCollection<uint>();
-            var ret2 = new BlockingCollection<uint>();
+            var ret = new BlockingCollectionDataChunk<uint>();
+            var ret2 = new BlockingCollectionDataChunk<uint>();
 
             using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
             {
@@ -59,9 +61,11 @@ namespace AsyncTest
             {
                 fh.StreamToHashValuesNaive(ms, ret2);
             }
+            var retList = ret.ToList();
+            var retList2 = ret2.ToList();
 
-            Assert.AreEqual(ret.Count, str.Length);
-            CollectionAssert.AreEqual(ret, ret2);
+            Assert.AreEqual(retList.Count, str.Length);
+            CollectionAssert.AreEqual(retList, retList2);
         }
     }
 }

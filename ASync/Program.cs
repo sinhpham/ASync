@@ -12,24 +12,71 @@ using System.Collections.Concurrent;
 
 namespace ASync
 {
-    struct FileChunk
+    public class DataChunk<T>
     {
-        public int Offset { get; set; }
-        public int Length { get; set; }
+        const int BufferSize = 2;
+
+        public T[] Data = new T[BufferSize];
+        public int DataSize { get; private set; }
+
+        public bool IsFull { get { return DataSize == BufferSize; } }
+
+        public void Add(T item)
+        {
+            Data[DataSize] = item;
+            ++DataSize;
+        }
+    }
+
+    public class BlockingCollectionDataChunk<T>
+    {
+        public BlockingCollectionDataChunk()
+        {
+            BlockingCollection = new BlockingCollection<DataChunk<T>>();
+            _currChunk = new DataChunk<T>();
+        }
+
+        public void Add(T item)
+        {
+            if (!_currChunk.IsFull)
+            {
+                _currChunk.Add(item);
+                return;
+            }
+            // CurrChunk is full, need to create new one and add the current one to blocking collection
+            BlockingCollection.Add(_currChunk);
+            _currChunk = new DataChunk<T>();
+            _currChunk.Add(item);
+        }
+
+        public void CompleteAdding()
+        {
+            BlockingCollection.Add(_currChunk);
+            BlockingCollection.CompleteAdding();
+            _currChunk = null;
+        }
+
+        public BlockingCollection<DataChunk<T>> BlockingCollection { get; private set; }
+        private DataChunk<T> _currChunk;
     }
 
     class Program
     {
         static void Main(string[] args)
         {
-            ProcessFile("abc.txt");
+            //ProcessFile("test.dat");
+
+            LocalMaxima.StressTest();
         }
 
         static void ProcessFile(string filename)
         {
-            var rollingHash = new BlockingCollection<uint>();
-            var localMaximaPos = new BlockingCollection<int>();
-            var partitionHash = new BlockingCollection<uint>();
+            var rollingHash = new BlockingCollectionDataChunk<uint>();
+            var localMaximaPos = new BlockingCollectionDataChunk<int>();
+            var partitionHash = new BlockingCollectionDataChunk<uint>();
+
+            var sw = new Stopwatch();
+            sw.Start();
 
             Task.Run(() =>
             {
@@ -42,7 +89,7 @@ namespace ASync
 
             Task.Run(() =>
             {
-                var lm = new LocalMaxima(1024);
+                var lm = new LocalMaxima(512 * 1024);
                 lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
             });
 
@@ -56,44 +103,16 @@ namespace ASync
                 }
             });
 
-            foreach (var i in partitionHash.GetConsumingEnumerable())
+            var count = 0;
+            foreach (var i in partitionHash.BlockingCollection.GetConsumingEnumerable())
             {
-                Console.WriteLine("File par hash: {0}", i);
+                count += i.DataSize;
+                //Console.WriteLine("File par hash: {0}", i);
             }
-        }
+            sw.Stop();
 
-        private static void TestLM()
-        {
-            var inputList = new BlockingCollection<uint>();
-            var outList = new BlockingCollection<int>();
-
-            Task.Run(() =>
-            {
-                while (true)
-                {
-                    var str = Console.ReadLine();
-                    var num = 0;
-                    if (int.TryParse(str, out num))
-                    {
-                        inputList.Add((uint)num);
-                    }
-                    else
-                    {
-                        inputList.CompleteAdding();
-                    }
-                }
-            });
-
-            Task.Run(() =>
-            {
-                var lm = new LocalMaxima(2);
-                lm.CalcUsingBlockAlgo(inputList, outList);
-            });
-
-            foreach (var i in outList.GetConsumingEnumerable())
-            {
-                Console.WriteLine("Local max pos: {0}", i);
-            }
+            Console.WriteLine("Number of partitions: {0}", count);
+            Console.WriteLine("Time: {0} ms", sw.ElapsedMilliseconds);
         }
     }
 }

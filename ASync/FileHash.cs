@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,8 +13,13 @@ namespace ASync
     {
         public FileHash(int hashBlock)
         {
+            BufferSize = 1024 * 512;  // 512kb buffer size
             _hashBlock = hashBlock;
-            BufferSize = 2 * hashBlock;
+
+            if (HashBlock > BufferSize)
+            {
+                throw new ArgumentException("Hashblock should be smaller than buffer size");
+            }
         }
 
         readonly int BufferSize;
@@ -21,7 +27,7 @@ namespace ASync
         readonly int _hashBlock;
         public int HashBlock { get { return _hashBlock; } }
 
-        public void StreamToHashValuesNaive(Stream inputStream, BlockingCollection<uint> hashValues)
+        public void StreamToHashValuesNaive(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
         {
             // For testing purpose.
             var tempBuff = ReadFully(inputStream);
@@ -34,9 +40,10 @@ namespace ASync
                 hashValues.Add(hv);
                 ++offset;
             }
+            hashValues.CompleteAdding();
         }
 
-        public void StreamToHashValues(Stream inputStream, BlockingCollection<uint> hashValues)
+        public void StreamToHashValues(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
         {
             // Read the source file into a byte array. 
             var prevBuffer = new byte[BufferSize];
@@ -88,7 +95,8 @@ namespace ASync
             hashValues.CompleteAdding();
         }
 
-        private void CalcForHashEndIndex(ref int currHashEndIdx, byte[] prevBuffer, byte[] buffer, ref uint prevHashValue, BlockingCollection<uint> hashValues)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void CalcForHashEndIndex(ref int currHashEndIdx, byte[] prevBuffer, byte[] buffer, ref uint prevHashValue, BlockingCollectionDataChunk<uint> hashValues)
         {
             currHashEndIdx += 1;
             var hashStartIdx = currHashEndIdx - HashBlock;

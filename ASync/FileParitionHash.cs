@@ -19,19 +19,23 @@ namespace ASync
         HashAlgorithm _ha;
         byte[] buffer = new byte[1024];
 
-        public void ProcessStream(Stream stream, BlockingCollection<int> positions, BlockingCollection<uint> partitionHashValues)
+        public void ProcessStream(Stream stream, BlockingCollectionDataChunk<int> positions, BlockingCollectionDataChunk<uint> partitionHashValues)
         {
             var prevPos = 0;
             var neededBytes = 0;
 
-            foreach (var pos in positions.GetConsumingEnumerable())
+            foreach (var posChunk in positions.BlockingCollection.GetConsumingEnumerable())
             {
-                neededBytes = pos - prevPos + 1;
-                var hv = CalcStreamPortion(stream, neededBytes);
-                partitionHashValues.Add(hv);
+                for (var i = 0; i < posChunk.DataSize; ++i )
+                {
+                    var pos = posChunk.Data[i];
+                    neededBytes = pos - prevPos + 1;
+                    var hv = CalcStreamPortion(stream, neededBytes);
+                    partitionHashValues.Add(hv);
 
-                // Prepare for next block.
-                prevPos = pos + 1;
+                    // Prepare for next block.
+                    prevPos = pos + 1;
+                }
             }
             // Handle the last partition
             neededBytes = (int)stream.Length - prevPos;
