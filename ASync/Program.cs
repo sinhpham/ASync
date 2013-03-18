@@ -16,16 +16,54 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            ProcessFile("test.dat");
+            var fn = "test.dat";
 
-            //LocalMaxima.StressTest();
+            var partH = new BlockingCollectionDataChunk<uint>();
+            ProcessFile(fn, partH);
+
+            var partHNaive = new BlockingCollectionDataChunk<uint>();
+            ProcessFileNaive(fn, partHNaive);
+
+            var l1 = partH.ToList();
+            var l2 = partHNaive.ToList();
+
+            Debug.Assert(l1.SequenceEqual(l2), "error");
         }
 
-        static void ProcessFile(string filename)
+        static void ProcessFileNaive(string filename, BlockingCollectionDataChunk<uint> partitionHash)
+        {
+            var rollingHash = new List<uint>();
+            var localMaximaPos = new List<int>();
+
+            var fileBytes = File.ReadAllBytes(filename);
+            using (var ms = new MemoryStream(fileBytes, 0, fileBytes.Length, true, true))
+            {
+                var fh = new FileHash(1024);
+                fh.StreamToHashValuesNaive(ms, rollingHash);
+            }
+
+            var lm = new LocalMaxima(512 * 1024);
+            lm.CalcUsingNaive(rollingHash, localMaximaPos);
+
+            var localMaximaPosBC = new BlockingCollectionDataChunk<int>();
+            foreach (var pos in localMaximaPos)
+            {
+                localMaximaPosBC.Add(pos);
+            }
+            localMaximaPosBC.CompleteAdding();
+
+            var mmh = new MurmurHash3_x86_32();
+            var fph = new FileParitionHash(mmh);
+            using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                fph.ProcessStream(fs, localMaximaPosBC, partitionHash);
+            }
+        }
+
+        static void ProcessFile(string filename, BlockingCollectionDataChunk<uint> partitionHash)
         {
             var rollingHash = new BlockingCollectionDataChunk<uint>();
             var localMaximaPos = new BlockingCollectionDataChunk<int>();
-            var partitionHash = new BlockingCollectionDataChunk<uint>();
 
             var sw = new Stopwatch();
             sw.Start();

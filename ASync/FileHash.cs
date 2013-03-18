@@ -27,12 +27,20 @@ namespace ASync
         readonly int _hashBlock;
         public int HashBlock { get { return _hashBlock; } }
 
-        public void StreamToHashValuesNaive(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
+        public void StreamToHashValuesNaive(Stream inputStream, List<uint> hashValues)
         {
             // For testing purpose.
-            var tempBuff = ReadFully(inputStream);
-            var buff = new byte[tempBuff.Length + HashBlock - 1];
-            Array.Copy(tempBuff, buff, tempBuff.Length);
+            var ms = inputStream as MemoryStream;
+            if (ms == null)
+            {
+                throw new InvalidDataException("stream should be a file stream");
+            }
+            
+            
+            //var buff = new byte[ms.Length + HashBlock - 1];
+            //Array.Copy(ms.GetBuffer(), buff, ms.Length);
+            ms.Write(new byte[HashBlock], 0, HashBlock);
+            var buff = ms.GetBuffer();
             var offset = 0;
             while (offset + HashBlock <= buff.Length)
             {
@@ -40,7 +48,6 @@ namespace ASync
                 hashValues.Add(hv);
                 ++offset;
             }
-            hashValues.CompleteAdding();
         }
 
         public void StreamToHashValues(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
@@ -106,20 +113,6 @@ namespace ASync
 
             hashValues.Add(hv);
             prevHashValue = hv;
-        }
-
-        private static byte[] ReadFully(Stream input)
-        {
-            byte[] buffer = new byte[16 * 1024];
-            using (var ms = new MemoryStream())
-            {
-                var read = 0;
-                while ((read = input.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    ms.Write(buffer, 0, read);
-                }
-                return ms.ToArray();
-            }
         }
     }
 }

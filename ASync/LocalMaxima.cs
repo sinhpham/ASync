@@ -96,6 +96,30 @@ namespace ASync
             return ret;
         }
 
+        public void CalcUsingNaive(List<uint> list, List<int> outPosition)
+        {
+            for (var i = 0; i < list.Count; ++i)
+            {
+                var isOk = true;
+                for (var j = i - LocalMaximaH; j <= i + LocalMaximaH; ++j)
+                {
+                    if (j < 0 || j >= list.Count || j == i)
+                    {
+                        continue;
+                    }
+                    if (list[j] >= list[i])
+                    {
+                        isOk = false;
+                        break;
+                    }
+                }
+                if (isOk)
+                {
+                    outPosition.Add(i);
+                }
+            }
+        }
+
         List<KeyValuePair<int, int>> CalcUsingGreedySeqAlgo(List<int> list)
         {
             // Local maxima: F[i] max in [F[i - h], F[i + h]]
@@ -158,7 +182,6 @@ namespace ASync
         List<KeyValuePair<int, int>> CalcUsingBlockAlgo(List<int> list)
         {
             var retPos = new BlockingCollectionDataChunk<int>();
-
             var inList = new BlockingCollectionDataChunk<uint>();
             foreach (var i in list)
             {
