@@ -56,6 +56,7 @@
     <Compile Include="FileHashTest.cs" />
     <Compile Include="LocalMaximaTest.cs" />
     <Compile Include="FilePartitionHashTest.cs" />
+    <Compile Include="DataChunkTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ASync\ASync.csproj">
