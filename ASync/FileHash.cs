@@ -33,18 +33,23 @@ namespace ASync
             var ms = inputStream as MemoryStream;
             if (ms == null)
             {
-                throw new InvalidDataException("stream should be a file stream");
+                throw new InvalidDataException("stream should be a memory stream");
             }
             
-            
-            //var buff = new byte[ms.Length + HashBlock - 1];
-            //Array.Copy(ms.GetBuffer(), buff, ms.Length);
-            ms.Write(new byte[HashBlock], 0, HashBlock);
             var buff = ms.GetBuffer();
             var offset = 0;
             while (offset + HashBlock <= buff.Length)
             {
                 var hv = Adler32Checksum.Calculate(buff, offset, HashBlock);
+                hashValues.Add(hv);
+                ++offset;
+            }
+            while (offset != buff.Length)
+            {
+                // Remaining data.
+                var currBuff = new byte[HashBlock];
+                Array.Copy(buff, offset, currBuff, 0, buff.Length - offset);
+                var hv = Adler32Checksum.Calculate(currBuff, 0, HashBlock);
                 hashValues.Add(hv);
                 ++offset;
             }

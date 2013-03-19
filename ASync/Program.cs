@@ -18,19 +18,21 @@ namespace ASync
         {
             var fn = "test.dat";
 
-            var partH = new BlockingCollectionDataChunk<uint>();
+            var partH = new List<uint>();
             ProcessFile(fn, partH);
 
-            var partHNaive = new BlockingCollectionDataChunk<uint>();
+            var partHNaive = new List<uint>();
             ProcessFileNaive(fn, partHNaive);
 
-            var l1 = partH.ToList();
-            var l2 = partHNaive.ToList();
 
-            Debug.Assert(l1.SequenceEqual(l2), "error");
+            if (!partH.SequenceEqual(partHNaive))
+            {
+                throw new InvalidDataException("wrong ans");
+            }
+
         }
 
-        static void ProcessFileNaive(string filename, BlockingCollectionDataChunk<uint> partitionHash)
+        static void ProcessFileNaive(string filename, List<uint> partitionHash)
         {
             var rollingHash = new List<uint>();
             var localMaximaPos = new List<int>();
@@ -42,7 +44,7 @@ namespace ASync
                 fh.StreamToHashValuesNaive(ms, rollingHash);
             }
 
-            var lm = new LocalMaxima(512 * 1024);
+            var lm = new LocalMaxima(4 * 1024);
             lm.CalcUsingNaive(rollingHash, localMaximaPos);
 
             var localMaximaPosBC = new BlockingCollectionDataChunk<int>();
@@ -52,18 +54,28 @@ namespace ASync
             }
             localMaximaPosBC.CompleteAdding();
 
+            var ph = new BlockingCollectionDataChunk<uint>();
             var mmh = new MurmurHash3_x86_32();
             var fph = new FileParitionHash(mmh);
             using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                fph.ProcessStream(fs, localMaximaPosBC, partitionHash);
+                fph.ProcessStream(fs, localMaximaPosBC, ph);
+            }
+
+            foreach (var items in ph.BlockingCollection.GetConsumingEnumerable())
+            {
+                for (var i = 0; i < items.DataSize; ++i)
+                {
+                    partitionHash.Add(items.Data[i]);
+                }
             }
         }
 
-        static void ProcessFile(string filename, BlockingCollectionDataChunk<uint> partitionHash)
+        static void ProcessFile(string filename, List<uint> partitionHash)
         {
             var rollingHash = new BlockingCollectionDataChunk<uint>();
             var localMaximaPos = new BlockingCollectionDataChunk<int>();
+            var ph = new BlockingCollectionDataChunk<uint>();
 
             var sw = new Stopwatch();
             sw.Start();
@@ -79,7 +91,7 @@ namespace ASync
 
             Task.Run(() =>
             {
-                var lm = new LocalMaxima(512 * 1024);
+                var lm = new LocalMaxima(4 * 1024);
                 lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
             });
 
@@ -89,15 +101,19 @@ namespace ASync
                 var fph = new FileParitionHash(mmh);
                 using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    fph.ProcessStream(fs, localMaximaPos, partitionHash);
+                    fph.ProcessStream(fs, localMaximaPos, ph);
                 }
             });
 
             var count = 0;
-            foreach (var i in partitionHash.BlockingCollection.GetConsumingEnumerable())
+            foreach (var items in ph.BlockingCollection.GetConsumingEnumerable())
             {
-                count += i.DataSize;
+                count += items.DataSize;
                 //Console.WriteLine("File par hash: {0}", i);
+                for (var i = 0; i < items.DataSize; ++i)
+                {
+                    partitionHash.Add(items.Data[i]);
+                }
             }
             sw.Stop();
 
