@@ -12,9 +12,34 @@ using System.Collections.Concurrent;
 
 namespace ASync
 {
+    public class SameHash : HashAlgorithm
+    {
+        public override void Initialize()
+        {
+
+        }
+
+        protected override void HashCore(byte[] array, int ibStart, int cbSize)
+        {
+            HashValue = new byte[4];
+            Array.Copy(array, 0, HashValue, 0, 4);
+        }
+
+        protected override byte[] HashFinal()
+        {
+            return HashValue;
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
+        {
+            TestReconciliation();
+
+        }
+
+        private static void TestFilePartition()
         {
             var fn = "test.dat";
 
@@ -29,7 +54,40 @@ namespace ASync
             {
                 throw new InvalidDataException("wrong ans");
             }
+        }
 
+        static void TestReconciliation()
+        {
+            var s1 = new List<uint> { 1, 3, 5 };
+            var s2 = new List<uint> { 2, 5, 6 };
+
+            var bf = GenerateBF(s1);
+            var fp = bf.FalsePositive;
+        }
+
+        static BloomFilter GenerateBF(List<uint> values)
+        {
+            var n = values.Count;
+            var m = n * 12;
+
+            var h1 = new SameHash();
+            var hList = new List<HashAlgorithm>();
+            hList.Add(h1);
+            for (var i = 0; i < 4; ++i)
+            {
+                var mmh = new MurmurHash3_x86_32();
+                mmh.Seed = (uint)i;
+                hList.Add(mmh);
+            }
+
+            var bf = new BloomFilter(m, hList);
+            foreach (var value in values)
+            {
+                var byteArr = BitConverter.GetBytes(value);
+                bf.Add(byteArr);
+            }
+
+            return bf;
         }
 
         static void ProcessFileNaive(string filename, List<uint> partitionHash)
