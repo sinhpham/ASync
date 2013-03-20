@@ -22,17 +22,18 @@ namespace AsyncTest
                     sb.Append(j);
                 }
                 var str = sb.ToString();
+                var byteArr = Encoding.UTF8.GetBytes(str);
 
                 var fh = new FileHash(5);
 
                 var ret = new BlockingCollectionDataChunk<uint>(2);
                 var ret2 = new List<uint>();
 
-                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+                using (var ms = new MemoryStream(byteArr))
                 {
                     fh.StreamToHashValues(ms, ret);
                 }
-                using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+                using (var ms = new MemoryStream(byteArr, 0, byteArr.Length, true, true))
                 {
                     fh.StreamToHashValuesNaive(ms, ret2);
                 }
@@ -48,17 +49,18 @@ namespace AsyncTest
         public void FileHashCorrectness2()
         {
             var str = "asdf";
+            var byteArr = Encoding.UTF8.GetBytes(str);
 
             var fh = new FileHash(5);
 
             var ret = new BlockingCollectionDataChunk<uint>(4);
             var ret2 = new List<uint>();
 
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+            using (var ms = new MemoryStream(byteArr))
             {
                 fh.StreamToHashValues(ms, ret);
             }
-            using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(str)))
+            using (var ms = new MemoryStream(byteArr, 0, byteArr.Length, true, true))
             {
                 fh.StreamToHashValuesNaive(ms, ret2);
             }
