@@ -58,14 +58,49 @@ namespace ASync
 
         static void TestReconciliation()
         {
-            var s1 = new List<uint> { 1, 3, 5 };
-            var s2 = new List<uint> { 2, 5, 6 };
+            var setA = new List<int> { 1, 3, 5 };
+            var setB = new List<int> { 2, 5, 6 };
 
-            var bf = GenerateBF(s1);
+            // In device A
+            var bf = GenerateBF(setA);
             var fp = bf.FalsePositive;
+
+            // Send this bloom filter to device B, in device B
+            var n0 = 0;
+            foreach (var item in setB)
+            {
+                var byteArr = BitConverter.GetBytes(item);
+                if (bf.Contains(byteArr))
+                {
+                    n0++;
+                }
+            }
+            var d0 = Helper.EstimateD0(bf.Count, setB.Count, n0, bf);
+
+            var _cp = new CharacteristicPolynomial(97);
+            var xVal = new List<int>(d0);
+            for (var i = 0; i < d0; ++i)
+            {
+                xVal.Add(i);
+            }
+            var cpb = _cp.Calc(setB, xVal);
+
+            // Send cpb to device A, in A:
+            var cpa = _cp.Calc(setA, xVal);
+            var cpaocpb = _cp.Div(cpa, cpb);
+
+            List<int> p;
+            List<int> q;
+            _cp.Interpolate(cpaocpb, xVal,
+                setA.Count - setB.Count,
+                out p, out q);
+
+            var samsb = _cp.Factoring(p);
+            var sbmsa = _cp.Factoring(q);
+
         }
 
-        static BloomFilter GenerateBF(List<uint> values)
+        static BloomFilter GenerateBF(List<int> values)
         {
             var n = values.Count;
             var m = n * 12;

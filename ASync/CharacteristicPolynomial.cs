@@ -17,15 +17,15 @@ namespace ASync
         readonly int _fieldOrder;
         public int FieldOrder { get { return _fieldOrder; } }
 
-        public List<int> Calc(List<int> set, List<int> xValues)
+        public List<int> Calc(IEnumerable<int> set, IEnumerable<int> xValues)
         {
             var ret = new List<int>();
-            foreach (var x in xValues)
+            foreach (var xVal in xValues)
             {
                 var currValue = 1;
-                for (var i = 0; i < set.Count; ++i)
+                foreach (var item in set)
                 {
-                    currValue = (currValue * (x - set[i])) % FieldOrder;
+                    currValue = (currValue * (xVal - item)) % FieldOrder;
                 }
                 currValue += currValue < 0 ? FieldOrder : 0;
                 ret.Add(currValue);
