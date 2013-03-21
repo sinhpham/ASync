@@ -318,14 +318,14 @@ namespace ASync
             {
                 using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var fh = new FileHash(1024);
+                    var fh = new FileHash(4);
                     fh.StreamToHashValues(fs, rollingHash);
                 }
             });
 
             Task.Run(() =>
             {
-                var lm = new LocalMaxima(4 * 1024);
+                var lm = new LocalMaxima(8);
                 lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
             });
 
