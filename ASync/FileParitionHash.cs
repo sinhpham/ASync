@@ -19,7 +19,8 @@ namespace ASync
         HashAlgorithm _ha;
         byte[] buffer = new byte[1024];
 
-        public void ProcessStream(Stream stream, BlockingCollectionDataChunk<int> positions, BlockingCollectionDataChunk<uint> partitionHashValues)
+        public void ProcessStream(Stream stream, BlockingCollectionDataChunk<int> positions,
+            BlockingCollectionDataChunk<uint> partitionHashValues, BlockingCollectionDataChunk<FileChunkInfo> fileChunkInfo)
         {
             var prevPos = 0;
             var neededBytes = 0;
@@ -32,7 +33,7 @@ namespace ASync
                     neededBytes = pos - prevPos + 1;
                     var hv = CalcStreamPortion(stream, neededBytes);
                     partitionHashValues.Add(hv);
-
+                    fileChunkInfo.Add(new FileChunkInfo() { Pos = prevPos, Length = neededBytes });
                     // Prepare for next block.
                     prevPos = pos + 1;
                 }
@@ -43,8 +44,10 @@ namespace ASync
             {
                 var lastHv = CalcStreamPortion(stream, neededBytes);
                 partitionHashValues.Add(lastHv);
+                fileChunkInfo.Add(new FileChunkInfo() { Pos = prevPos, Length = neededBytes });
             }
             partitionHashValues.CompleteAdding();
+            fileChunkInfo.CompleteAdding();
         }
 
         private uint CalcStreamPortion(Stream stream, int neededBytes)

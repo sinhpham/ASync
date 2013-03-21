@@ -31,22 +31,162 @@ namespace ASync
         }
     }
 
+    public class PatchData
+    {
+        public int HashValue { get; set; }
+        public byte[] Data { get; set; }
+    }
+
+    public class FileChunkInfo
+    {
+        public int Pos { get; set; }
+        public int Length { get; set; }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-            TestReconciliation();
+            Sync("fileOld.txt", "fileNew.txt", "fileout.txt");
+        }
 
+        static void Sync(string oldFileName, string newFileName, string outputFileName)
+        {
+            var setNew = new List<int>();
+            var fciNew = new List<FileChunkInfo>();
+            ProcessFile(newFileName, setNew, fciNew);
+            for (var i = 0; i < setNew.Count; ++i)
+            {
+                // Only use the last 15 bits
+                setNew[i] = setNew[i] & 0x7FFF;
+            }
+            var setOld = new List<int>();
+            var fciOld = new List<FileChunkInfo>();
+            ProcessFile(oldFileName, setOld, fciOld);
+            for (var i = 0; i < setOld.Count; ++i)
+            {
+                // Only use the last 15 bits
+                setOld[i] = setOld[i] & 0x7FFF;
+            }
+
+            var bf = GenerateBF(setNew);
+
+            // Send this bloom filter to device B, in device B
+            var n0 = 0;
+            foreach (var item in setOld)
+            {
+                var byteArr = BitConverter.GetBytes(item);
+                if (bf.Contains(byteArr))
+                {
+                    n0++;
+                }
+            }
+            var d0 = Helper.EstimateD0(bf.Count, setOld.Count, n0, bf);
+
+            // 46337 is the last prime number which ^2 < (2^31 - 1)
+            var _cp = new CharacteristicPolynomial(46337);
+            var xVal = new List<int>(d0);
+            for (var i = 0; i < d0; ++i)
+            {
+                xVal.Add(i);
+            }
+            var cpb = _cp.Calc(setOld, xVal);
+
+            // Send cpb to device A, in A:
+            var cpa = _cp.Calc(setNew, xVal);
+            var cpaocpb = _cp.Div(cpa, cpb);
+
+            List<int> p;
+            List<int> q;
+            _cp.Interpolate(cpaocpb, xVal,
+                setNew.Count - setOld.Count,
+                out p, out q);
+
+            var samsb = _cp.Factoring(p);
+            var sbmsa = _cp.Factoring(q);
+
+            var missingSet = new HashSet<int>();
+            foreach (var item in samsb)
+            {
+                missingSet.Add(item);
+            }
+
+            // Genereate patch file
+            var patchFile = new List<PatchData>();
+            using (var fs = new FileStream(newFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                for (var i = 0; i < setNew.Count; ++i)
+                {
+                    var currH = setNew[i];
+                    var currPatch = new PatchData()
+                    {
+                        HashValue = currH
+                    };
+                    if (missingSet.Contains(currH))
+                    {
+                        // Need to include the actual data.
+                        var currFileChunkInfo = fciNew[i];
+                        fs.Position = currFileChunkInfo.Pos;
+                        var fcData = new byte[currFileChunkInfo.Length];
+                        var bRead = fs.Read(fcData, 0, currFileChunkInfo.Length);
+                        if (bRead != currFileChunkInfo.Length)
+                        {
+                            throw new InvalidDataException();
+                        }
+                        currPatch.Data = fcData;
+                    }
+                    patchFile.Add(currPatch);
+                }
+            }
+
+            // Send patch to device B to reconstruct the file.
+            var existingSet = new Dictionary<int, int>();
+            for (var i = 0; i < setOld.Count; ++i)
+            {
+                existingSet.Add(setOld[i], i);
+            }
+
+            using (var fsout = new FileStream(outputFileName, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                using (var fsOld = new FileStream(oldFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    for (var i = 0; i < patchFile.Count; ++i)
+                    {
+                        var currPatch = patchFile[i];
+                        if (currPatch.Data == null)
+                        {
+                            // Existing data.
+                            var idx = existingSet[currPatch.HashValue];
+                            var currFileChunkInfo = fciOld[idx];
+                            fsOld.Position = currFileChunkInfo.Pos;
+
+                            var fcData = new byte[currFileChunkInfo.Length];
+                            var bRead = fsOld.Read(fcData, 0, currFileChunkInfo.Length);
+                            if (bRead != currFileChunkInfo.Length)
+                            {
+                                throw new InvalidDataException();
+                            }
+                            fsout.Write(fcData, 0, fcData.Length);
+                        }
+                        else
+                        {
+                            // New data.
+                            fsout.Write(currPatch.Data, 0, currPatch.Data.Length);
+                        }
+                    }
+                }
+            }
         }
 
         private static void TestFilePartition()
         {
             var fn = "test.dat";
 
-            var partH = new List<uint>();
-            ProcessFile(fn, partH);
+            var partH = new List<int>();
+            var fci = new List<FileChunkInfo>();
+            ProcessFile(fn, partH, fci);
 
-            var partHNaive = new List<uint>();
+            var partHNaive = new List<int>();
             ProcessFileNaive(fn, partHNaive);
 
 
@@ -59,11 +199,10 @@ namespace ASync
         static void TestReconciliation()
         {
             var setA = new List<int> { 1, 3, 5 };
-            var setB = new List<int> { 2, 5, 6 };
+            var setB = new List<int> { 3, 5 };
 
             // In device A
             var bf = GenerateBF(setA);
-            var fp = bf.FalsePositive;
 
             // Send this bloom filter to device B, in device B
             var n0 = 0;
@@ -125,10 +264,11 @@ namespace ASync
             return bf;
         }
 
-        static void ProcessFileNaive(string filename, List<uint> partitionHash)
+        static void ProcessFileNaive(string filename, List<int> partitionHash)
         {
             var rollingHash = new List<uint>();
             var localMaximaPos = new List<int>();
+            var fciBC = new BlockingCollectionDataChunk<FileChunkInfo>();
 
             var fileBytes = File.ReadAllBytes(filename);
             using (var ms = new MemoryStream(fileBytes, 0, fileBytes.Length, true, true))
@@ -152,26 +292,27 @@ namespace ASync
             var fph = new FileParitionHash(mmh);
             using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                fph.ProcessStream(fs, localMaximaPosBC, ph);
+                fph.ProcessStream(fs, localMaximaPosBC, ph, fciBC);
             }
 
             foreach (var items in ph.BlockingCollection.GetConsumingEnumerable())
             {
                 for (var i = 0; i < items.DataSize; ++i)
                 {
-                    partitionHash.Add(items.Data[i]);
+                    partitionHash.Add((int)items.Data[i]);
                 }
             }
         }
 
-        static void ProcessFile(string filename, List<uint> partitionHash)
+        static void ProcessFile(string filename, List<int> partitionHash, List<FileChunkInfo> fci)
         {
             var rollingHash = new BlockingCollectionDataChunk<uint>();
             var localMaximaPos = new BlockingCollectionDataChunk<int>();
             var ph = new BlockingCollectionDataChunk<uint>();
+            var fciBC = new BlockingCollectionDataChunk<FileChunkInfo>();
 
-            var sw = new Stopwatch();
-            sw.Start();
+            //var sw = new Stopwatch();
+            //sw.Start();
 
             Task.Run(() =>
             {
@@ -194,7 +335,7 @@ namespace ASync
                 var fph = new FileParitionHash(mmh);
                 using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    fph.ProcessStream(fs, localMaximaPos, ph);
+                    fph.ProcessStream(fs, localMaximaPos, ph, fciBC);
                 }
             });
 
@@ -205,13 +346,21 @@ namespace ASync
                 //Console.WriteLine("File par hash: {0}", i);
                 for (var i = 0; i < items.DataSize; ++i)
                 {
-                    partitionHash.Add(items.Data[i]);
+                    partitionHash.Add((int)items.Data[i]);
                 }
             }
-            sw.Stop();
 
-            Console.WriteLine("Number of partitions: {0}", count);
-            Console.WriteLine("Time: {0} ms", sw.ElapsedMilliseconds);
+            foreach (var items in fciBC.BlockingCollection.GetConsumingEnumerable())
+            {
+                for (var i = 0; i < items.DataSize; ++i)
+                {
+                    fci.Add(items.Data[i]);
+                }
+            }
+            //sw.Stop();
+
+            //Console.WriteLine("Number of partitions: {0}", count);
+            //Console.WriteLine("Time: {0} ms", sw.ElapsedMilliseconds);
         }
     }
 }

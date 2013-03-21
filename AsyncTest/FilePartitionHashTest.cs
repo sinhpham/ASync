@@ -19,6 +19,7 @@ namespace AsyncTest
             var outHashValues = new BlockingCollectionDataChunk<uint>(3);
             var mmh = new MurmurHash3_x86_32();
             var fph = new FileParitionHash(mmh);
+            var fci = new BlockingCollectionDataChunk<FileChunkInfo>();
 
             var strStream = "abcdef";
             positions.Add(2);
@@ -27,7 +28,7 @@ namespace AsyncTest
 
             using (var ms = new MemoryStream(Encoding.UTF8.GetBytes(strStream)))
             {
-                fph.ProcessStream(ms, positions, outHashValues);
+                fph.ProcessStream(ms, positions, outHashValues, fci);
             }
 
             var h1 = BitConverter.ToUInt32(mmh.ComputeHash(Encoding.UTF8.GetBytes(strStream), 0, 3), 0);
