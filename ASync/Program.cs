@@ -53,7 +53,7 @@ namespace ASync
         static void Sync(string oldFileName, string newFileName, string outputFileName)
         {
             // Only use the last 20 bits
-            var bitMask = 0xFFFFF;
+            var bitMask = 0xFFFFFFF;
 
             var setNew = new List<int>();
             var fciNew = new List<FileChunkInfo>();
@@ -92,7 +92,8 @@ namespace ASync
             Debug.Assert(diff <= d0);
 
             // 46337 is the last prime number which ^2 < (2^31 - 1)
-            var _cp = new CharacteristicPolynomial(1048583);
+            // 1048583 is the smallest prime > 2^20
+            var _cp = new CharacteristicPolynomial(2147483647);
             var xVal = new List<int>(d0);
             for (var i = 0; i < d0; ++i)
             {
@@ -111,6 +112,10 @@ namespace ASync
                 out p, out q);
 
             var missingFromOldList = _cp.Factoring(p);
+
+            var checkList = missingFromOldList.Except(snmso).Count();
+            Debug.Assert(checkList == 0);
+            Debug.Assert(missingFromOldList.Count == snmso.Count);
 
             var missingSet = new HashSet<int>();
             foreach (var item in missingFromOldList)
