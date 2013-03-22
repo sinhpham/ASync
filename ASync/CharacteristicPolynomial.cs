@@ -22,13 +22,13 @@ namespace ASync
             var ret = new List<int>();
             foreach (var xVal in xValues)
             {
-                var currValue = 1;
+                var currValue = 1L;
                 foreach (var item in set)
                 {
-                    currValue = (currValue * (xVal - item)) % FieldOrder;
+                    currValue = (currValue * ((long)xVal - (long)item)) % (long)FieldOrder;
                 }
                 currValue += currValue < 0 ? FieldOrder : 0;
-                ret.Add(currValue);
+                ret.Add((int)currValue);
             }
             return ret;
         }
@@ -95,7 +95,7 @@ namespace ASync
             }
 
             var ib = InversionGF(b);
-            return (a * ib) % FieldOrder;
+            return (int)(((long)a * (long)ib) % (long)FieldOrder);
         }
 
         private int InversionGF(int a)
@@ -113,7 +113,7 @@ namespace ASync
                 var nextA = currP - q * a;
                 var nextP = a;
                 var nextY2 = y1;
-                var nextY1 = y2 - ((q * y1) % FieldOrder);
+                var nextY1 = y2 - (int)(((long)q * (long)y1) % (long)FieldOrder);
                 nextY1 += nextY1 < 0 ? FieldOrder : 0;
 
                 a = nextA;

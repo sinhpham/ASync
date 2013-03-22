@@ -52,21 +52,22 @@ namespace ASync
 
         static void Sync(string oldFileName, string newFileName, string outputFileName)
         {
+            // Only use the last 20 bits
+            var bitMask = 0xFFFFF;
+
             var setNew = new List<int>();
             var fciNew = new List<FileChunkInfo>();
             ProcessFile(newFileName, setNew, fciNew);
             for (var i = 0; i < setNew.Count; ++i)
             {
-                // Only use the last 15 bits
-                setNew[i] = setNew[i] & 0x7FFF;
+                setNew[i] = setNew[i] & bitMask;
             }
             var setOld = new List<int>();
             var fciOld = new List<FileChunkInfo>();
             ProcessFile(oldFileName, setOld, fciOld);
             for (var i = 0; i < setOld.Count; ++i)
             {
-                // Only use the last 15 bits
-                setOld[i] = setOld[i] & 0x7FFF;
+                setOld[i] = setOld[i] & bitMask;
             }
 
             var bf = GenerateBF(setNew);
@@ -83,8 +84,15 @@ namespace ASync
             }
             var d0 = Helper.EstimateD0(bf.Count, setOld.Count, n0, bf);
 
+            // Debug infor
+            var snmso = setNew.Except(setOld).ToList();
+            var somsn = setOld.Except(setNew).ToList();
+            var diff = snmso.Count + somsn.Count;
+
+            Debug.Assert(diff <= d0);
+
             // 46337 is the last prime number which ^2 < (2^31 - 1)
-            var _cp = new CharacteristicPolynomial(46337);
+            var _cp = new CharacteristicPolynomial(1048583);
             var xVal = new List<int>(d0);
             for (var i = 0; i < d0; ++i)
             {
@@ -102,11 +110,10 @@ namespace ASync
                 setNew.Count - setOld.Count,
                 out p, out q);
 
-            var samsb = _cp.Factoring(p);
-            var sbmsa = _cp.Factoring(q);
+            var missingFromOldList = _cp.Factoring(p);
 
             var missingSet = new HashSet<int>();
-            foreach (var item in samsb)
+            foreach (var item in missingFromOldList)
             {
                 missingSet.Add(item);
             }
