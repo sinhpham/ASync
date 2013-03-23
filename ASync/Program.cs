@@ -330,8 +330,8 @@ namespace ASync
             {
                 using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var fh = new FileHash(1);
-                    fh.StreamToByteHashValues(fs, rollingHash);
+                    var fh = new FileHash(4);
+                    fh.StreamToHashValues(fs, rollingHash);
                 }
             });
 

@@ -59,11 +59,15 @@ namespace ASync
         {
             var buffer = new byte[BufferSize];
             var byteRead = 0;
+
+            var mmh = new MurmurHash3_x86_32();
+
             while ((byteRead = inputStream.Read(buffer, 0, BufferSize)) != 0)
             {
                 for (var i = 0; i < byteRead; ++i)
                 {
-                    hashValues.Add((uint)buffer[i]);
+                    var hv = BitConverter.ToUInt32(mmh.ComputeHash(buffer, i, 1), 0);
+                    hashValues.Add(hv);
                 }
             }
             hashValues.CompleteAdding();
