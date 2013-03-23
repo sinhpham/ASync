@@ -55,6 +55,20 @@ namespace ASync
             }
         }
 
+        public void StreamToByteHashValues(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
+        {
+            var buffer = new byte[BufferSize];
+            var byteRead = 0;
+            while ((byteRead = inputStream.Read(buffer, 0, BufferSize)) != 0)
+            {
+                for (var i = 0; i < byteRead; ++i)
+                {
+                    hashValues.Add((uint)buffer[i]);
+                }
+            }
+            hashValues.CompleteAdding();
+        }
+
         public void StreamToHashValues(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
         {
             // Read the source file into a byte array. 

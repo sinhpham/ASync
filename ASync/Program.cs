@@ -47,7 +47,7 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            Sync("fileOld.txt", "fileNew.txt", "fileout.txt");
+            Sync("fileOld.pdf", "fileNew.pdf", "fileout.pdf");
         }
 
         static void Sync(string oldFileName, string newFileName, string outputFileName)
@@ -330,14 +330,14 @@ namespace ASync
             {
                 using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var fh = new FileHash(4);
-                    fh.StreamToHashValues(fs, rollingHash);
+                    var fh = new FileHash(1);
+                    fh.StreamToByteHashValues(fs, rollingHash);
                 }
             });
 
             Task.Run(() =>
             {
-                var lm = new LocalMaxima(8);
+                var lm = new LocalMaxima(2048);
                 lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
             });
 
