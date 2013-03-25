@@ -35,7 +35,7 @@ namespace ASync
             {
                 throw new InvalidDataException("stream should be a memory stream");
             }
-            
+
             var buff = ms.GetBuffer();
             var offset = 0;
             while (offset + HashBlock <= buff.Length)
@@ -55,22 +55,69 @@ namespace ASync
             }
         }
 
-        public void StreamToByteHashValues(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
+        public void StreamToUInt32HashValues(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
         {
+            // Read the source file into a byte array. 
+            var prevBuffer = new byte[BufferSize];
             var buffer = new byte[BufferSize];
-            var byteRead = 0;
+            var starting = true;
+            var prevHashValue = 0U;
 
-            var mmh = new MurmurHash3_x86_32();
+            var byteRead = 0;
+            var currHashEndIdx = -1;
+            var hEndIdx = -1;
 
             while ((byteRead = inputStream.Read(buffer, 0, BufferSize)) != 0)
             {
-                for (var i = 0; i < byteRead; ++i)
+                if (starting)
                 {
-                    var hv = BitConverter.ToUInt32(mmh.ComputeHash(buffer, i, 1), 0);
+                    var hv = BitConverter.ToUInt32(buffer, 0);
                     hashValues.Add(hv);
+                    prevHashValue = hv;
+                    starting = false;
+                    currHashEndIdx = HashBlock - 1;
+                }
+                if (byteRead < BufferSize)
+                {
+                    Array.Clear(buffer, byteRead, BufferSize - byteRead);
+                }
+                hEndIdx = byteRead + HashBlock - 2;
+
+                while (currHashEndIdx < BufferSize - 1 && currHashEndIdx != hEndIdx)
+                {
+                    CalcHashEndIdxUInt32(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
+                }
+                currHashEndIdx -= BufferSize;
+                hEndIdx -= BufferSize;
+                // Swap 2 buffers
+                var temp = buffer;
+                buffer = prevBuffer;
+                prevBuffer = temp;
+            }
+            if (currHashEndIdx != hEndIdx)
+            {
+                // Need an empty final block.
+                Array.Clear(buffer, 0, BufferSize);
+
+                while (currHashEndIdx != hEndIdx)
+                {
+                    CalcHashEndIdxUInt32(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
                 }
             }
             hashValues.CompleteAdding();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void CalcHashEndIdxUInt32(ref int currHashEndIdx, byte[] prevBuffer, byte[] buffer, ref uint prevHashValue, BlockingCollectionDataChunk<uint> hashValues)
+        {
+            currHashEndIdx += 1;
+            var inByte = buffer[currHashEndIdx];
+            var bitMask = (uint)(inByte << 24);
+
+            var hv = (prevHashValue >> 8) | bitMask;
+
+            hashValues.Add(hv);
+            prevHashValue = hv;
         }
 
         public void StreamToHashValues(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
@@ -103,7 +150,7 @@ namespace ASync
 
                 while (currHashEndIdx < BufferSize - 1 && currHashEndIdx != hEndIdx)
                 {
-                    CalcForHashEndIndex(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
+                    CalcAdlerHashEndIdx(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
                 }
                 currHashEndIdx -= BufferSize;
                 hEndIdx -= BufferSize;
@@ -116,17 +163,17 @@ namespace ASync
             {
                 // Need an empty final block.
                 Array.Clear(buffer, 0, BufferSize);
-                
+
                 while (currHashEndIdx != hEndIdx)
                 {
-                    CalcForHashEndIndex(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
+                    CalcAdlerHashEndIdx(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
                 }
             }
             hashValues.CompleteAdding();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CalcForHashEndIndex(ref int currHashEndIdx, byte[] prevBuffer, byte[] buffer, ref uint prevHashValue, BlockingCollectionDataChunk<uint> hashValues)
+        private void CalcAdlerHashEndIdx(ref int currHashEndIdx, byte[] prevBuffer, byte[] buffer, ref uint prevHashValue, BlockingCollectionDataChunk<uint> hashValues)
         {
             currHashEndIdx += 1;
             var hashStartIdx = currHashEndIdx - HashBlock;
