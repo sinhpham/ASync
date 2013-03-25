@@ -55,10 +55,37 @@ namespace ASync
             }
         }
 
+        public void StreamToUInt32Naive(Stream inputStream, List<uint> hashValues)
+        {
+            // For testing purpose.
+            var ms = inputStream as MemoryStream;
+            if (ms == null)
+            {
+                throw new InvalidDataException("stream should be a memory stream");
+            }
+
+            var buff = ms.GetBuffer();
+            var offset = 0;
+            while (offset + HashBlock <= buff.Length)
+            {
+                var hv = BitConverter.ToUInt32(buff, offset);
+                hashValues.Add(hv);
+                ++offset;
+            }
+            while (offset != buff.Length)
+            {
+                // Remaining data.
+                var currBuff = new byte[4];
+                Array.Copy(buff, offset, currBuff, 0, buff.Length - offset);
+                var hv = BitConverter.ToUInt32(currBuff, 0);
+                hashValues.Add(hv);
+                ++offset;
+            }
+        }
+
         public void StreamToUInt32HashValues(Stream inputStream, BlockingCollectionDataChunk<uint> hashValues)
         {
             // Read the source file into a byte array. 
-            var prevBuffer = new byte[BufferSize];
             var buffer = new byte[BufferSize];
             var starting = true;
             var prevHashValue = 0U;
@@ -75,24 +102,20 @@ namespace ASync
                     hashValues.Add(hv);
                     prevHashValue = hv;
                     starting = false;
-                    currHashEndIdx = HashBlock - 1;
+                    currHashEndIdx = 4 - 1;
                 }
                 if (byteRead < BufferSize)
                 {
                     Array.Clear(buffer, byteRead, BufferSize - byteRead);
                 }
-                hEndIdx = byteRead + HashBlock - 2;
+                hEndIdx = byteRead + 4 - 2;
 
                 while (currHashEndIdx < BufferSize - 1 && currHashEndIdx != hEndIdx)
                 {
-                    CalcHashEndIdxUInt32(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
+                    CalcHashEndIdxUInt32(ref currHashEndIdx, buffer, ref prevHashValue, hashValues);
                 }
                 currHashEndIdx -= BufferSize;
                 hEndIdx -= BufferSize;
-                // Swap 2 buffers
-                var temp = buffer;
-                buffer = prevBuffer;
-                prevBuffer = temp;
             }
             if (currHashEndIdx != hEndIdx)
             {
@@ -101,14 +124,14 @@ namespace ASync
 
                 while (currHashEndIdx != hEndIdx)
                 {
-                    CalcHashEndIdxUInt32(ref currHashEndIdx, prevBuffer, buffer, ref prevHashValue, hashValues);
+                    CalcHashEndIdxUInt32(ref currHashEndIdx, buffer, ref prevHashValue, hashValues);
                 }
             }
             hashValues.CompleteAdding();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CalcHashEndIdxUInt32(ref int currHashEndIdx, byte[] prevBuffer, byte[] buffer, ref uint prevHashValue, BlockingCollectionDataChunk<uint> hashValues)
+        private void CalcHashEndIdxUInt32(ref int currHashEndIdx, byte[] buffer, ref uint prevHashValue, BlockingCollectionDataChunk<uint> hashValues)
         {
             currHashEndIdx += 1;
             var inByte = buffer[currHashEndIdx];
