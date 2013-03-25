@@ -52,8 +52,8 @@ namespace ASync
 
         static void Sync(string oldFileName, string newFileName, string outputFileName)
         {
-            // Only use the last 20 bits
-            var bitMask = 0xFFFFFFF;
+            // Only use the last 24 bits
+            var bitMask = 0xFFFFFF;
 
             var setNew = new List<int>();
             var fciNew = new List<FileChunkInfo>();
@@ -70,6 +70,7 @@ namespace ASync
                 setOld[i] = setOld[i] & bitMask;
             }
 
+            // On device A.
             var bf = GenerateBF(setNew);
 
             // Send this bloom filter to device B, in device B
@@ -82,7 +83,7 @@ namespace ASync
                     n0++;
                 }
             }
-            var d0 = Helper.EstimateD0(bf.Count, setOld.Count, n0, bf);
+            var d0 = (int)(Helper.EstimateD0(bf.Count, setOld.Count, n0, bf) + 3);
 
             // Debug infor
             var snmso = setNew.Except(setOld).ToList();
@@ -188,6 +189,14 @@ namespace ASync
                     }
                 }
             }
+
+            var bfSize = Helper.SizeOfBF(bf);
+            var cpbSize = Helper.SizeCPB(cpb);
+            var pfSize = Helper.SizeOfPatchFile(patchFile);
+
+            var totalBandwidth = bfSize + cpbSize + pfSize;
+
+            Console.WriteLine("Total: {0} bytes", totalBandwidth);
         }
 
         private static void TestFilePartition()
@@ -330,14 +339,14 @@ namespace ASync
             {
                 using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var fh = new FileHash(4);
-                    fh.StreamToUInt32HashValues(fs, rollingHash);
+                    var fh = new FileHash(64);
+                    fh.StreamToHashValues(fs, rollingHash);
                 }
             });
 
             Task.Run(() =>
             {
-                var lm = new LocalMaxima(2048);
+                var lm = new LocalMaxima(512);
                 lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
             });
 

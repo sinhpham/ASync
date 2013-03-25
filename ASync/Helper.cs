@@ -29,5 +29,34 @@ namespace ASync
             }
             return ret;
         }
+
+        public static int SizeOfBF(BloomFilter bf)
+        {
+            return bf.Count + (int)Math.Ceiling(bf.BitLength / 8.0);
+        }
+
+        public static int SizeCPB(List<int> cpb)
+        {
+            return cpb.Count * 4;
+        }
+
+        public static int SizeOfPatchFile(List<PatchData> pf)
+        {
+            var ret = 0;
+            foreach (var pd in pf)
+            {
+                ret += SizeOfPatchData(pd);
+            }
+            return ret;
+        }
+
+        public static int SizeOfPatchData(PatchData pd)
+        {
+            if (pd.Data == null)
+            {
+                return 4; // Only hash value
+            }
+            return pd.Data.Length + 4 + 4; // Data length + data size + hash value;
+        }
     }
 }
