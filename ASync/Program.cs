@@ -61,7 +61,7 @@ namespace ASync
 
     class BloomFilterSubOptions
     {
-        [Option('i', "input", HelpText = "Input file name", Required = true)]
+        [Option('i', "input", HelpText = "Input file name - new file", Required = true)]
         public string Input { get; set; }
         [Option('o', "bffile", HelpText = "Output bloom filter file name", Required = true)]
         public string BFFile { get; set; }
@@ -69,7 +69,7 @@ namespace ASync
 
     class CharacteristicPolynomialSubOptions
     {
-        [Option('i', "input", HelpText = "Input file name", Required = true)]
+        [Option('i', "input", HelpText = "Input file name - old file", Required = true)]
         public string Input { get; set; }
         [Option('b', "bffile", HelpText = "Bloom filter file name", Required = true)]
         public string BFFile { get; set; }
@@ -79,20 +79,20 @@ namespace ASync
 
     class DeltaFileSubOptions
     {
-        [Option('i', "input", HelpText = "Input file name", Required = true)]
+        [Option('i', "input", HelpText = "Input file name - new file", Required = true)]
         public string Input { get; set; }
         [Option('c', "cpfile", HelpText = "Characteristic Polynomial file name", Required = true)]
-        public string BFFile { get; set; }
+        public string CPFile { get; set; }
         [Option('o', "ouputFile", HelpText = "Output file name", Required = true)]
         public string Ouput { get; set; }
     }
 
     class PatchFileSubOptions
     {
-        [Option('i', "input", HelpText = "Input file name", Required = true)]
+        [Option('i', "input", HelpText = "Input file name - old file", Required = true)]
         public string Input { get; set; }
         [Option('d', "deltafile", HelpText = "Delta file name", Required = true)]
-        public string BFFile { get; set; }
+        public string DeltaFile { get; set; }
         [Option('o', "ouputFile", HelpText = "Output file name", Required = true)]
         public string Ouput { get; set; }
     }
@@ -141,7 +141,7 @@ namespace ASync
                 return;
             }
 
-            var a = 0;
+            
             switch (invokedVerb)
             {
                 case "genbf":
@@ -153,8 +153,12 @@ namespace ASync
                     GenCPFile(cpOptions.Input, cpOptions.BFFile, cpOptions.Ouput);
                     break;
                 case "gend":
+                    var dOptions = (DeltaFileSubOptions)invokedVerbInstance;
+                    GenDeltaFile(dOptions.Input, dOptions.CPFile, dOptions.Ouput);
                     break;
                 case "patch":
+                    var pOptions = (PatchFileSubOptions)invokedVerbInstance;
+                    PatchFile(pOptions.Input, pOptions.DeltaFile, pOptions.Ouput);
                     break;
             }
         }
@@ -188,6 +192,7 @@ namespace ASync
             {
                 bf = Serializer.Deserialize<BloomFilter>(file);
             }
+            bf.SetHashFunctions(BloomFilter.DefaultHashFuncs());
 
             var setOld = new List<int>();
             var fciOld = new List<FileChunkInfo>();
