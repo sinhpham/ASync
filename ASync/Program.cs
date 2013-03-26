@@ -17,10 +17,12 @@ using ProtoBuf;
 namespace ASync
 {
 
-
+    [ProtoContract]
     public class PatchData
     {
+        [ProtoMember(1)]
         public int HashValue { get; set; }
+        [ProtoMember(2)]
         public byte[] Data { get; set; }
     }
 
@@ -95,6 +97,14 @@ namespace ASync
         public string Ouput { get; set; }
     }
 
+    [ProtoContract]
+    class CPData
+    {
+        [ProtoMember(1)]
+        public int SetCount { get; set; }
+        [ProtoMember(2)]
+        public List<int> CPValues { get; set; }
+    }
 
     class Program
     {
@@ -110,7 +120,7 @@ namespace ASync
                 Sync("fileOld.pdf", "fileNew.pdf", "fileOut.pdf");
                 return;
             }
-            
+
             if (!CommandLine.Parser.Default.ParseArguments(args, options,
                 (verb, subOptions) =>
                 {
@@ -139,6 +149,8 @@ namespace ASync
                     GenBFFile(bfOptions.Input, bfOptions.BFFile);
                     break;
                 case "gencp":
+                    var cpOptions = (CharacteristicPolynomialSubOptions)invokedVerbInstance;
+                    GenCPFile(cpOptions.Input, cpOptions.BFFile, cpOptions.Ouput);
                     break;
                 case "gend":
                     break;
@@ -171,7 +183,183 @@ namespace ASync
 
         static void GenCPFile(string input, string bfFile, string cpFile)
         {
+            BloomFilter bf;
+            using (var file = File.OpenRead(bfFile))
+            {
+                bf = Serializer.Deserialize<BloomFilter>(file);
+            }
 
+            var setOld = new List<int>();
+            var fciOld = new List<FileChunkInfo>();
+            ProcessFile(input, setOld, fciOld);
+            for (var i = 0; i < setOld.Count; ++i)
+            {
+                setOld[i] = setOld[i] & HashBitMask;
+            }
+
+            var n0 = 0;
+            foreach (var item in setOld)
+            {
+                var byteArr = BitConverter.GetBytes(item);
+                if (bf.Contains(byteArr))
+                {
+                    n0++;
+                }
+            }
+            var d0 = (int)(Helper.EstimateD0(bf.Count, setOld.Count, n0, bf) + 3);
+
+
+            // 46337 is the last prime number which ^2 < (2^31 - 1)
+            // 1048583 is the smallest prime > 2^20
+            var _cp = new CharacteristicPolynomial(2147483647);
+            var xVal = new List<int>(d0);
+            for (var i = 0; i < d0; ++i)
+            {
+                xVal.Add(i);
+            }
+            var cpb = _cp.Calc(setOld, xVal);
+
+            var cpdata = new CPData
+            {
+                CPValues = cpb,
+                SetCount = setOld.Count,
+            };
+
+            using (var file = File.Create(cpFile))
+            {
+                Serializer.Serialize(file, cpdata);
+            }
+        }
+
+        static void GenDeltaFile(string input, string cpFile, string deltaFile)
+        {
+            CPData cpd;
+            using (var file = File.OpenRead(cpFile))
+            {
+                cpd = Serializer.Deserialize<CPData>(file);
+            }
+
+            var cpb = cpd.CPValues;
+
+            var setNew = new List<int>();
+            var fciNew = new List<FileChunkInfo>();
+            ProcessFile(input, setNew, fciNew);
+            for (var i = 0; i < setNew.Count; ++i)
+            {
+                setNew[i] = setNew[i] & HashBitMask;
+            }
+
+            var _cp = new CharacteristicPolynomial(2147483647);
+            var d0 = cpb.Count;
+            var xVal = new List<int>(d0);
+            for (var i = 0; i < d0; ++i)
+            {
+                xVal.Add(i);
+            }
+
+            var cpa = _cp.Calc(setNew, xVal);
+            var cpaocpb = _cp.Div(cpa, cpb);
+
+            List<int> p;
+            List<int> q;
+            _cp.Interpolate(cpaocpb, xVal,
+                setNew.Count - cpd.SetCount,
+                out p, out q);
+
+            var missingFromOldList = _cp.Factoring(p);
+
+            var missingSet = new HashSet<int>();
+            foreach (var item in missingFromOldList)
+            {
+                missingSet.Add(item);
+            }
+
+            // Genereate delta file.
+            var deltaData = new List<PatchData>();
+            using (var fs = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                for (var i = 0; i < setNew.Count; ++i)
+                {
+                    var currH = setNew[i];
+                    var currPatch = new PatchData()
+                    {
+                        HashValue = currH
+                    };
+                    if (missingSet.Contains(currH))
+                    {
+                        // Need to include the actual data.
+                        var currFileChunkInfo = fciNew[i];
+                        fs.Position = currFileChunkInfo.Pos;
+                        var fcData = new byte[currFileChunkInfo.Length];
+                        var bRead = fs.Read(fcData, 0, currFileChunkInfo.Length);
+                        if (bRead != currFileChunkInfo.Length)
+                        {
+                            throw new InvalidDataException();
+                        }
+                        currPatch.Data = fcData;
+                    }
+                    deltaData.Add(currPatch);
+                }
+            }
+
+            using (var file = File.Create(deltaFile))
+            {
+                Serializer.Serialize(file, deltaData);
+            }
+        }
+
+        static void PatchFile(string input, string deltaFile, string output)
+        {
+            List<PatchData> deltaData;
+            using (var file = File.OpenRead(deltaFile))
+            {
+                deltaData = Serializer.Deserialize<List<PatchData>>(file);
+            }
+
+            var setOld = new List<int>();
+            var fciOld = new List<FileChunkInfo>();
+            ProcessFile(input, setOld, fciOld);
+            for (var i = 0; i < setOld.Count; ++i)
+            {
+                setOld[i] = setOld[i] & HashBitMask;
+            }
+
+            var existingSet = new Dictionary<int, int>();
+            for (var i = 0; i < setOld.Count; ++i)
+            {
+                existingSet.Add(setOld[i], i);
+            }
+
+            using (var fsout = new FileStream(output, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                using (var fsOld = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    for (var i = 0; i < deltaData.Count; ++i)
+                    {
+                        var currPatch = deltaData[i];
+                        if (currPatch.Data == null)
+                        {
+                            // Existing data.
+                            var idx = existingSet[currPatch.HashValue];
+                            var currFileChunkInfo = fciOld[idx];
+                            fsOld.Position = currFileChunkInfo.Pos;
+
+                            var fcData = new byte[currFileChunkInfo.Length];
+                            var bRead = fsOld.Read(fcData, 0, currFileChunkInfo.Length);
+                            if (bRead != currFileChunkInfo.Length)
+                            {
+                                throw new InvalidDataException();
+                            }
+                            fsout.Write(fcData, 0, fcData.Length);
+                        }
+                        else
+                        {
+                            // New data.
+                            fsout.Write(currPatch.Data, 0, currPatch.Data.Length);
+                        }
+                    }
+                }
+            }
         }
 
         static void Sync(string oldFileName, string newFileName, string outputFileName)
