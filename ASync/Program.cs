@@ -9,6 +9,9 @@ using System.Security.Cryptography;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Collections.Concurrent;
+using CommandLine;
+using CommandLine.Text;
+using System.Reflection;
 
 namespace ASync
 {
@@ -43,31 +46,155 @@ namespace ASync
         public int Length { get; set; }
     }
 
+    class Options
+    {
+        [VerbOption("genbf", HelpText = "Generate Bloom Filter file")]
+        public BloomFilterSubOptions GenBFVerb { get; set; }
+
+        [VerbOption("gencp", HelpText = "Generate characteristic polynomial file")]
+        public CharacteristicPolynomialSubOptions GenCPVerb { get; set; }
+
+        [VerbOption("gend", HelpText = "Generate delta file")]
+        public DeltaFileSubOptions GenDVerb { get; set; }
+
+        [VerbOption("patch", HelpText = "Patch file")]
+        public PatchFileSubOptions PatchVerb { get; set; }
+
+        [HelpOption]
+        public string GetUsage()
+        {
+            return HelpText.AutoBuild(this,
+                (HelpText current) => HelpText.DefaultParsingErrorsHandler(this, current));
+        }
+
+        public string GetUsage(string verb)
+        {
+            return HelpText.AutoBuild(this, verb);
+        }
+    }
+
+    class BloomFilterSubOptions
+    {
+        [Option('i', "input", HelpText = "Input file name", Required=true)]
+        public string Input { get; set; }
+        [Option('o', "bffile", HelpText = "Output bloom filter file name", Required = true)]
+        public string BFFile { get; set; }
+    }
+
+    class CharacteristicPolynomialSubOptions
+    {
+        [Option('i', "input", HelpText = "Input file name", Required = true)]
+        public string Input { get; set; }
+        [Option('b', "bffile", HelpText = "Bloom filter file name", Required = true)]
+        public string BFFile { get; set; }
+        [Option('o', "ouputFile", HelpText = "Output file name", Required = true)]
+        public string Ouput { get; set; }
+    }
+
+    class DeltaFileSubOptions
+    {
+        [Option('i', "input", HelpText = "Input file name", Required = true)]
+        public string Input { get; set; }
+        [Option('c', "cpfile", HelpText = "Characteristic Polynomial file name", Required = true)]
+        public string BFFile { get; set; }
+        [Option('o', "ouputFile", HelpText = "Output file name", Required = true)]
+        public string Ouput { get; set; }
+    }
+
+    class PatchFileSubOptions
+    {
+        [Option('i', "input", HelpText = "Input file name", Required = true)]
+        public string Input { get; set; }
+        [Option('d', "deltafile", HelpText = "Delta file name", Required = true)]
+        public string BFFile { get; set; }
+        [Option('o', "ouputFile", HelpText = "Output file name", Required = true)]
+        public string Ouput { get; set; }
+    }
+
+
     class Program
     {
         static void Main(string[] args)
         {
-            Sync("fileOld.pdf", "fileNew.pdf", "fileout.pdf");
+            string invokedVerb = "";
+            object invokedVerbInstance = null;
+
+            var options = new Options();
+            if (!CommandLine.Parser.Default.ParseArguments(args, options,
+                (verb, subOptions) =>
+                {
+                    // if parsing succeeds the verb name and correct instance
+                    // will be passed to onVerbCommand delegate (string,object)
+                    invokedVerb = verb;
+                    invokedVerbInstance = subOptions;
+                }))
+            {
+                if (invokedVerb != "")
+                {
+                    Console.Write(options.GetUsage(invokedVerb));
+                }
+                else
+                {
+                    Console.Write(options.GetUsage());
+                }
+                Environment.Exit(CommandLine.Parser.DefaultExitCodeFail);
+            }
+
+            var a = 0;
+            switch (invokedVerb)
+            {
+                case "genbf":
+                    var bfOptions = (BloomFilterSubOptions)invokedVerbInstance;
+                    GenBFFile(bfOptions.Input, bfOptions.BFFile);
+                    break;
+                case "gencp":
+                    break;
+                case "gend":
+                    break;
+                case "patch":
+                    break;
+            }
+        }
+
+        // Only use the last 24 bits
+        const int HashBitMask = 0xFFFFFF;
+
+        static void GenBFFile(string inputFile, string bfFile)
+        {
+            var setNew = new List<int>();
+            var fciNew = new List<FileChunkInfo>();
+            ProcessFile(inputFile, setNew, fciNew);
+            for (var i = 0; i < setNew.Count; ++i)
+            {
+                setNew[i] = setNew[i] & HashBitMask;
+            }
+
+            var bf = GenerateBF(setNew);
+
+            // Serialize bf.
+
+        }
+
+        static void GenCPFile(string input, string bfFile, string cpFile)
+        {
+
         }
 
         static void Sync(string oldFileName, string newFileName, string outputFileName)
         {
-            // Only use the last 24 bits
-            var bitMask = 0xFFFFFF;
-
             var setNew = new List<int>();
             var fciNew = new List<FileChunkInfo>();
             ProcessFile(newFileName, setNew, fciNew);
             for (var i = 0; i < setNew.Count; ++i)
             {
-                setNew[i] = setNew[i] & bitMask;
+                setNew[i] = setNew[i] & HashBitMask;
             }
             var setOld = new List<int>();
             var fciOld = new List<FileChunkInfo>();
             ProcessFile(oldFileName, setOld, fciOld);
             for (var i = 0; i < setOld.Count; ++i)
             {
-                setOld[i] = setOld[i] & bitMask;
+                setOld[i] = setOld[i] & HashBitMask;
             }
 
             // On device A.
