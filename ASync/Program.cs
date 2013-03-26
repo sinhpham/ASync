@@ -12,27 +12,11 @@ using System.Collections.Concurrent;
 using CommandLine;
 using CommandLine.Text;
 using System.Reflection;
+using ProtoBuf;
 
 namespace ASync
 {
-    public class SameHash : HashAlgorithm
-    {
-        public override void Initialize()
-        {
 
-        }
-
-        protected override void HashCore(byte[] array, int ibStart, int cbSize)
-        {
-            HashValue = new byte[4];
-            Array.Copy(array, 0, HashValue, 0, 4);
-        }
-
-        protected override byte[] HashFinal()
-        {
-            return HashValue;
-        }
-    }
 
     public class PatchData
     {
@@ -75,7 +59,7 @@ namespace ASync
 
     class BloomFilterSubOptions
     {
-        [Option('i', "input", HelpText = "Input file name", Required=true)]
+        [Option('i', "input", HelpText = "Input file name", Required = true)]
         public string Input { get; set; }
         [Option('o', "bffile", HelpText = "Output bloom filter file name", Required = true)]
         public string BFFile { get; set; }
@@ -118,8 +102,15 @@ namespace ASync
         {
             string invokedVerb = "";
             object invokedVerbInstance = null;
-
             var options = new Options();
+
+            if (args.Length == 0)
+            {
+                Console.Write(options.GetUsage());
+                Sync("fileOld.pdf", "fileNew.pdf", "fileOut.pdf");
+                return;
+            }
+            
             if (!CommandLine.Parser.Default.ParseArguments(args, options,
                 (verb, subOptions) =>
                 {
@@ -137,7 +128,7 @@ namespace ASync
                 {
                     Console.Write(options.GetUsage());
                 }
-                Environment.Exit(CommandLine.Parser.DefaultExitCodeFail);
+                return;
             }
 
             var a = 0;
@@ -172,7 +163,10 @@ namespace ASync
             var bf = GenerateBF(setNew);
 
             // Serialize bf.
-
+            using (var file = File.Create(bfFile))
+            {
+                Serializer.Serialize(file, bf);
+            }
         }
 
         static void GenCPFile(string input, string bfFile, string cpFile)
@@ -392,15 +386,9 @@ namespace ASync
             var n = values.Count;
             var m = n * 12;
 
-            var h1 = new SameHash();
-            var hList = new List<HashAlgorithm>();
-            hList.Add(h1);
-            for (var i = 0; i < 4; ++i)
-            {
-                var mmh = new MurmurHash3_x86_32();
-                mmh.Seed = (uint)i;
-                hList.Add(mmh);
-            }
+            m += m % 8 == 0 ? 0 : 8 - (m % 8);
+
+            var hList = BloomFilter.DefaultHashFuncs();
 
             var bf = new BloomFilter(m, hList);
             foreach (var value in values)

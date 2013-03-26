@@ -32,7 +32,7 @@ namespace ASync
 
         public static int SizeOfBF(BloomFilter bf)
         {
-            return bf.Count + (int)Math.Ceiling(bf.BitLength / 8.0);
+            return 4 + (int)Math.Ceiling(bf.BitLength / 8.0);
         }
 
         public static int SizeCPB(List<int> cpb)
