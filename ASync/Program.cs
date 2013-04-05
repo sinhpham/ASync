@@ -287,7 +287,7 @@ namespace ASync
             var xValVer = new List<int>(VerificationNum);
             for (var i = 0; i < VerificationNum; ++i)
             {
-                xValVer.Add(d0 + 1 + i);
+                xValVer.Add(d0 + i);
             }
             var cpaVer = _cp.Calc(setNew, xValVer);
             var cpaVeroCpbVer = _cp.Div(cpaVer, cpbVer);
