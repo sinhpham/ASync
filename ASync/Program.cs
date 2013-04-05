@@ -13,6 +13,7 @@ using CommandLine;
 using CommandLine.Text;
 using System.Reflection;
 using ProtoBuf;
+using NLog;
 
 namespace ASync
 {
@@ -110,6 +111,8 @@ namespace ASync
     {
         static void Main(string[] args)
         {
+            logger.Info("Started");
+
             string invokedVerb = "";
             object invokedVerbInstance = null;
             var options = new Options();
@@ -165,6 +168,10 @@ namespace ASync
 
         // Only use the last 24 bits
         const int HashBitMask = 0xFFFFFF;
+        const int VerificationNum = 1;
+        const int FieldOrder = 2147483647;
+
+        private static Logger logger = LogManager.GetCurrentClassLogger();
 
         static void GenBFFile(string inputFile, string bfFile)
         {
@@ -213,12 +220,9 @@ namespace ASync
             }
             var d0 = (int)(Helper.EstimateD0(bf.Count, setOld.Count, n0, bf) + 3);
 
-
-            // 46337 is the last prime number which ^2 < (2^31 - 1)
-            // 1048583 is the smallest prime > 2^20
-            var _cp = new CharacteristicPolynomial(2147483647);
+            var _cp = new CharacteristicPolynomial(FieldOrder);
             var xVal = new List<int>(d0);
-            for (var i = 0; i < d0; ++i)
+            for (var i = 0; i < d0 + VerificationNum; ++i)
             {
                 xVal.Add(i);
             }
@@ -236,13 +240,20 @@ namespace ASync
             }
         }
 
-        static void GenDeltaFile(string input, string cpFile, string deltaFile)
+        static bool GenDeltaFile(string input, string cpFile, string deltaFile)
         {
             CPData cpd;
             using (var file = File.OpenRead(cpFile))
             {
                 cpd = Serializer.Deserialize<CPData>(file);
             }
+
+            var cpbVer = new List<int>();
+            for (var i = 0; i < VerificationNum; ++i)
+            {
+                cpbVer.Add(cpd.CPValues[cpd.CPValues.Count - VerificationNum + i]);
+            }
+            cpd.CPValues.RemoveRange(cpd.CPValues.Count - VerificationNum, VerificationNum);
 
             var cpb = cpd.CPValues;
 
@@ -254,7 +265,7 @@ namespace ASync
                 setNew[i] = setNew[i] & HashBitMask;
             }
 
-            var _cp = new CharacteristicPolynomial(2147483647);
+            var _cp = new CharacteristicPolynomial(FieldOrder);
             var d0 = cpb.Count;
             var xVal = new List<int>(d0);
             for (var i = 0; i < d0; ++i)
@@ -270,6 +281,29 @@ namespace ASync
             _cp.Interpolate(cpaocpb, xVal,
                 setNew.Count - cpd.SetCount,
                 out p, out q);
+
+            // TODO: verification.
+            // If verification failed => return false;
+            var xValVer = new List<int>(VerificationNum);
+            for (var i = 0; i < VerificationNum; ++i)
+            {
+                xValVer.Add(d0 + 1 + i);
+            }
+            var cpaVer = _cp.Calc(setNew, xValVer);
+            var cpaVeroCpbVer = _cp.Div(cpaVer, cpbVer);
+
+            for (var i = 0; i < VerificationNum; ++i)
+            {
+                var pval = _cp.CalcCoeff(p, xValVer[i]);
+                var qVal = _cp.CalcCoeff(q, xValVer[i]);
+                var verNum = _cp.DivGF(pval, qVal);
+                if (verNum != cpaVeroCpbVer[i])
+                {
+                    logger.Debug("Verification failed, need to increase d0");
+                    return false;
+                }
+            }
+
 
             var missingFromOldList = _cp.Factoring(p);
 
@@ -311,6 +345,7 @@ namespace ASync
             {
                 Serializer.Serialize(file, deltaData);
             }
+            return true;
         }
 
         static void PatchFile(string input, string deltaFile, string output)
@@ -415,7 +450,7 @@ namespace ASync
                 xVal.Add(i);
             }
             var cpb = _cp.Calc(setOld, xVal);
-
+            
             // Send cpb to device A, in A:
             var cpa = _cp.Calc(setNew, xVal);
             var cpaocpb = _cp.Div(cpa, cpb);
@@ -425,6 +460,28 @@ namespace ASync
             _cp.Interpolate(cpaocpb, xVal,
                 setNew.Count - setOld.Count,
                 out p, out q);
+
+            // Verification.
+            var xValVer = new List<int>(VerificationNum);
+            for (var i = 0; i < VerificationNum; ++i)
+            {
+                xValVer.Add(d0 + 1 + i);
+            }
+            var cpaVer = _cp.Calc(setNew, xValVer);
+            var cpbVer = _cp.Calc(setOld, xValVer);
+            var cpaVeroCpbVer = _cp.Div(cpaVer, cpbVer);
+
+            for (var i = 0; i < VerificationNum; ++i)
+            {
+                var pval = _cp.CalcCoeff(p, xValVer[i]);
+                var qVal = _cp.CalcCoeff(q, xValVer[i]);
+                var verNum = _cp.DivGF(pval, qVal);
+                if (verNum != cpaVeroCpbVer[i])
+                {
+                    logger.Debug("Verification failed, need to increase d0");
+                    throw new InvalidOperationException();
+                }
+            }
 
             var missingFromOldList = _cp.Factoring(p);
 

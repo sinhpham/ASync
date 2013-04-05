@@ -33,6 +33,45 @@ namespace ASync
             return ret;
         }
 
+        public int CalcCoeff(ICollection<int> coeffs, int xVal)
+        {
+            var currValue = 0;
+            var pow = 0;
+            foreach (var co in coeffs)
+            {
+                var p = PowerGF(xVal, pow);
+                var cv = MulGF(co, p);
+                currValue = AddGF(currValue, cv);
+                pow++;
+            }
+            return (int)currValue;
+        }
+
+        private int PowerGF(int a, int x)
+        {
+            // Calc a^x in GF
+            var ret = 1;
+            for (var i = 0; i < x; ++i)
+            {
+                ret = MulGF(ret, a);
+            }
+            return ret;
+        }
+
+        public int AddGF(int a, int b)
+        {
+            // Calc a + b in GF
+            var ret = ((long)a + (long)b) % (long)FieldOrder;
+            return (int)ret;
+        }
+
+        private int MulGF(int a, int b)
+        {
+            // Calc a * b in GF
+            var ret = ((long)a * (long)b) % (long)FieldOrder;
+            return (int)ret;
+        }
+
         // Division of two polynomials over finite field
         public List<int> Div(List<int> cpa, List<int> cpb)
         {
@@ -84,7 +123,7 @@ namespace ASync
             DeleteArrPtr(retPtr);
         }
 
-        private int DivGF(int a, int b)
+        public int DivGF(int a, int b)
         {
             // Division over finite field 
             // p should be a prime number
