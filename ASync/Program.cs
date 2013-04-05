@@ -76,6 +76,8 @@ namespace ASync
         public string BFFile { get; set; }
         [Option('o', "ouputFile", HelpText = "Output file name", Required = true)]
         public string Ouput { get; set; }
+        [Option('a', "addx", HelpText = "Additional x values", Required = false)]
+        public int AdditionalXVal { get; set; }
     }
 
     class DeltaFileSubOptions
@@ -153,7 +155,7 @@ namespace ASync
                     break;
                 case "gencp":
                     var cpOptions = (CharacteristicPolynomialSubOptions)invokedVerbInstance;
-                    GenCPFile(cpOptions.Input, cpOptions.BFFile, cpOptions.Ouput);
+                    GenCPFile(cpOptions.Input, cpOptions.BFFile, cpOptions.Ouput, cpOptions.AdditionalXVal);
                     break;
                 case "gend":
                     var dOptions = (DeltaFileSubOptions)invokedVerbInstance;
@@ -192,7 +194,7 @@ namespace ASync
             }
         }
 
-        static void GenCPFile(string input, string bfFile, string cpFile)
+        static void GenCPFile(string input, string bfFile, string cpFile, int additionalXValues)
         {
             BloomFilter bf;
             using (var file = File.OpenRead(bfFile))
