@@ -22,13 +22,12 @@ namespace ASync
             var ret = new List<int>();
             foreach (var xVal in xValues)
             {
-                var currValue = 1L;
+                var currValue = 1;
                 foreach (var item in set)
                 {
-                    currValue = (currValue * ((long)xVal - (long)item)) % (long)FieldOrder;
+                    currValue = MulGF(currValue, AddGF(xVal, -item));
                 }
-                currValue += currValue < 0 ? FieldOrder : 0;
-                ret.Add((int)currValue);
+                ret.Add(currValue);
             }
             return ret;
         }
@@ -62,6 +61,7 @@ namespace ASync
         {
             // Calc a + b in GF
             var ret = ((long)a + (long)b) % (long)FieldOrder;
+            ret += ret < 0 ? FieldOrder : 0;
             return (int)ret;
         }
 
@@ -69,6 +69,7 @@ namespace ASync
         {
             // Calc a * b in GF
             var ret = ((long)a * (long)b) % (long)FieldOrder;
+            ret += ret < 0 ? FieldOrder : 0;
             return (int)ret;
         }
 
@@ -129,18 +130,18 @@ namespace ASync
             // p should be a prime number
             if (b == 0)
             {
-                // TODO: handle div 0
-                return 0;
+                throw new InvalidOperationException();
             }
 
             var ib = InversionGF(b);
-            return (int)(((long)a * (long)ib) % (long)FieldOrder);
+            return MulGF(a, ib);
         }
 
         private int InversionGF(int a)
         {
             // Inversion over finite field 
             // p should be a prime number
+            // Algorithm 6 in "division and inversion over finite field"
             var y1 = 1;
             var y2 = 0;
             var currP = FieldOrder;
@@ -152,8 +153,7 @@ namespace ASync
                 var nextA = currP - q * a;
                 var nextP = a;
                 var nextY2 = y1;
-                var nextY1 = y2 - (int)(((long)q * (long)y1) % (long)FieldOrder);
-                nextY1 += nextY1 < 0 ? FieldOrder : 0;
+                var nextY1 = AddGF(y2, -MulGF(q, y1));
 
                 a = nextA;
                 currP = nextP;

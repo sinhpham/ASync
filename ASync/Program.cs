@@ -113,59 +113,66 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            logger.Info("Started");
+            //logger.Info("Started");
 
-            string invokedVerb = "";
-            object invokedVerbInstance = null;
-            var options = new Options();
+            //string invokedVerb = "";
+            //object invokedVerbInstance = null;
+            //var options = new Options();
 
-            if (args.Length == 0)
-            {
-                Console.Write(options.GetUsage());
-                Sync("fileOld.pdf", "fileNew.pdf", "fileOut.pdf");
-                return;
-            }
+            //if (args.Length == 0)
+            //{
+            //    Console.Write(options.GetUsage());
+            //    Sync("fileOld.pdf", "fileNew.pdf", "fileOut.pdf");
+            //    return;
+            //}
 
-            if (!CommandLine.Parser.Default.ParseArguments(args, options,
-                (verb, subOptions) =>
-                {
-                    // if parsing succeeds the verb name and correct instance
-                    // will be passed to onVerbCommand delegate (string,object)
-                    invokedVerb = verb;
-                    invokedVerbInstance = subOptions;
-                }))
-            {
-                if (invokedVerb != "")
-                {
-                    Console.Write(options.GetUsage(invokedVerb));
-                }
-                else
-                {
-                    Console.Write(options.GetUsage());
-                }
-                return;
-            }
+            //if (!CommandLine.Parser.Default.ParseArguments(args, options,
+            //    (verb, subOptions) =>
+            //    {
+            //        // if parsing succeeds the verb name and correct instance
+            //        // will be passed to onVerbCommand delegate (string,object)
+            //        invokedVerb = verb;
+            //        invokedVerbInstance = subOptions;
+            //    }))
+            //{
+            //    if (invokedVerb != "")
+            //    {
+            //        Console.Write(options.GetUsage(invokedVerb));
+            //    }
+            //    else
+            //    {
+            //        Console.Write(options.GetUsage());
+            //    }
+            //    return;
+            //}
 
-            
-            switch (invokedVerb)
-            {
-                case "genbf":
-                    var bfOptions = (BloomFilterSubOptions)invokedVerbInstance;
-                    GenBFFile(bfOptions.Input, bfOptions.BFFile);
-                    break;
-                case "gencp":
-                    var cpOptions = (CharacteristicPolynomialSubOptions)invokedVerbInstance;
-                    GenCPFile(cpOptions.Input, cpOptions.BFFile, cpOptions.Ouput, cpOptions.AdditionalXVal);
-                    break;
-                case "gend":
-                    var dOptions = (DeltaFileSubOptions)invokedVerbInstance;
-                    GenDeltaFile(dOptions.Input, dOptions.CPFile, dOptions.Ouput);
-                    break;
-                case "patch":
-                    var pOptions = (PatchFileSubOptions)invokedVerbInstance;
-                    PatchFile(pOptions.Input, pOptions.DeltaFile, pOptions.Ouput);
-                    break;
-            }
+
+            //switch (invokedVerb)
+            //{
+            //    case "genbf":
+            //        var bfOptions = (BloomFilterSubOptions)invokedVerbInstance;
+            //        GenBFFile(bfOptions.Input, bfOptions.BFFile);
+            //        break;
+            //    case "gencp":
+            //        var cpOptions = (CharacteristicPolynomialSubOptions)invokedVerbInstance;
+            //        GenCPFile(cpOptions.Input, cpOptions.BFFile, cpOptions.Ouput, cpOptions.AdditionalXVal);
+            //        break;
+            //    case "gend":
+            //        var dOptions = (DeltaFileSubOptions)invokedVerbInstance;
+            //        GenDeltaFile(dOptions.Input, dOptions.CPFile, dOptions.Ouput);
+            //        break;
+            //    case "patch":
+            //        var pOptions = (PatchFileSubOptions)invokedVerbInstance;
+            //        PatchFile(pOptions.Input, pOptions.DeltaFile, pOptions.Ouput);
+            //        break;
+            //}
+
+
+            //SyncFolder("D:/asynctest/vlc-2.0.5", "D:/asynctest/vlc-2.0.4",
+            //    "D:/asynctest/vlc-2.0.5-ouput", "D:/asynctest/vlc-2.0.5-ouputauthen",
+            //    "D:/asynctest/vlc-2.0.5-tempfiles");
+
+            CompareFolder("D:/asynctest/vlc-2.0.5-ouput", "D:/asynctest/vlc-2.0.5-ouputauthen");
         }
 
         // Only use the last 24 bits
@@ -174,6 +181,117 @@ namespace ASync
         const int FieldOrder = 2147483647;
 
         private static Logger logger = LogManager.GetCurrentClassLogger();
+
+        static void FullDirList(DirectoryInfo dir, List<FileInfo> fileList)
+        {
+            foreach (FileInfo f in dir.GetFiles("*.*"))
+            {
+                fileList.Add(f);
+            }
+
+            foreach (DirectoryInfo d in dir.GetDirectories())
+            {
+                FullDirList(d, fileList);
+            }
+        }
+
+        static bool CompareFolder(string folderA, string folderB)
+        {
+            var fileList = new List<FileInfo>();
+            FullDirList(new DirectoryInfo(folderA), fileList);
+
+            foreach (var fileAInfo in fileList)
+            {
+                var relativePath = fileAInfo.FullName.Remove(0, folderA.Length).Replace("\\", "/");
+
+                Console.WriteLine(relativePath);
+
+                var fileB = folderB + relativePath;
+
+                var fileABytes = File.ReadAllBytes(fileAInfo.FullName);
+                var fileBBytes = File.ReadAllBytes(fileB);
+
+                if (fileABytes.Length != fileBBytes.Length)
+                {
+                    return false;
+                }
+                for (var i = 0; i < fileABytes.Length; ++i)
+                {
+                    if (fileABytes[i] != fileBBytes[i])
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        static void SyncFolder(string newFolderPath, string oldFolderPath,
+            string outputFolderPath, string outputAuthenticPath,
+            string tempFolderPath)
+        {
+            var fileList = new List<FileInfo>();
+            FullDirList(new DirectoryInfo(newFolderPath), fileList);
+
+            foreach (var fNew in fileList)
+            {
+                var relativePath = fNew.FullName.Remove(0, newFolderPath.Length).Replace("\\", "/");
+
+                var fOldFn = oldFolderPath + relativePath;
+                if (File.Exists(fOldFn))
+                {
+                    Console.WriteLine(relativePath);
+
+                    // Copy to authentic path
+                    var authenFn = outputAuthenticPath + relativePath;
+                    var authenFi = new FileInfo(authenFn);
+                    authenFi.Directory.Create();
+                    File.Copy(fNew.FullName, authenFn, true);
+                    
+                    // Do synchronization
+                    var bfFn = tempFolderPath + relativePath + ".bf.dat";
+                    var cpFn = tempFolderPath + relativePath + ".cp.dat";
+                    var deltaFn = tempFolderPath + relativePath + ".delta.dat";
+
+                    var fileInfo = new FileInfo(bfFn);
+                    fileInfo.Directory.Create();
+                    GenBFFile(fNew.FullName, bfFn);
+
+                    var ok = false;
+                    var additionalXValue = -1;
+                    while (!ok)
+                    {
+                        ++additionalXValue;
+                        if (additionalXValue > 0)
+                        {
+                            Console.WriteLine("Failed verification, inceases r to {0}", additionalXValue);
+                        }
+                        
+                        GenCPFile(fOldFn, bfFn, cpFn, additionalXValue);
+                        
+                        ok = GenDeltaFile(fNew.FullName, cpFn, deltaFn);
+                    }
+
+                    var oFn = outputFolderPath + relativePath;
+                    var oFileInfo = new FileInfo(oFn);
+                    oFileInfo.Directory.Create();
+                    PatchFile(fOldFn, deltaFn, oFn);
+                }
+            }
+        }
+
+        static List<int> GenXValues(int num)
+        {
+            var ret = new List<int>(num);
+            var addConst = 0x1000000;
+
+            for (var i = 0; i < num; ++i)
+            {
+                ret.Add(i + addConst);
+            }
+
+            return ret;
+        }
 
         static void GenBFFile(string inputFile, string bfFile)
         {
@@ -223,11 +341,8 @@ namespace ASync
             var d0 = (int)(Helper.EstimateD0(bf.Count, setOld.Count, n0, bf) + 3);
 
             var _cp = new CharacteristicPolynomial(FieldOrder);
-            var xVal = new List<int>(d0);
-            for (var i = 0; i < d0 + VerificationNum; ++i)
-            {
-                xVal.Add(i);
-            }
+            var xVal = GenXValues(d0 + additionalXValues + VerificationNum);
+
             var cpb = _cp.Calc(setOld, xVal);
 
             var cpdata = new CPData
@@ -269,11 +384,7 @@ namespace ASync
 
             var _cp = new CharacteristicPolynomial(FieldOrder);
             var d0 = cpb.Count;
-            var xVal = new List<int>(d0);
-            for (var i = 0; i < d0; ++i)
-            {
-                xVal.Add(i);
-            }
+            var xVal = GenXValues(d0);
 
             var cpa = _cp.Calc(setNew, xVal);
             var cpaocpb = _cp.Div(cpa, cpb);
@@ -286,11 +397,8 @@ namespace ASync
 
             // TODO: verification.
             // If verification failed => return false;
-            var xValVer = new List<int>(VerificationNum);
-            for (var i = 0; i < VerificationNum; ++i)
-            {
-                xValVer.Add(d0 + i);
-            }
+            var xValVer = GenXValues(d0 + VerificationNum);
+            xValVer.RemoveRange(0, d0);
             var cpaVer = _cp.Calc(setNew, xValVer);
             var cpaVeroCpbVer = _cp.Div(cpaVer, cpbVer);
 
@@ -369,7 +477,10 @@ namespace ASync
             var existingSet = new Dictionary<int, int>();
             for (var i = 0; i < setOld.Count; ++i)
             {
-                existingSet.Add(setOld[i], i);
+                if (!existingSet.ContainsKey(setOld[i]))
+                {
+                    existingSet.Add(setOld[i], i);
+                }
             }
 
             using (var fsout = new FileStream(output, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -452,7 +563,7 @@ namespace ASync
                 xVal.Add(i);
             }
             var cpb = _cp.Calc(setOld, xVal);
-            
+
             // Send cpb to device A, in A:
             var cpa = _cp.Calc(setNew, xVal);
             var cpaocpb = _cp.Div(cpa, cpb);
@@ -702,6 +813,13 @@ namespace ASync
             //var sw = new Stopwatch();
             //sw.Start();
 
+            var fLength = 0;
+            using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                fLength = (int)fs.Length;
+            }
+
+
             Task.Run(() =>
             {
                 using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -713,7 +831,10 @@ namespace ASync
 
             Task.Run(() =>
             {
-                var lm = new LocalMaxima(512);
+                var lmWindow = fLength / 200;
+                lmWindow = lmWindow < 8 ? 8 : lmWindow;
+
+                var lm = new LocalMaxima(lmWindow);
                 lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
             });
 
