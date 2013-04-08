@@ -168,11 +168,11 @@ namespace ASync
             //}
 
 
-            //SyncFolder("D:/asynctest/vlc-2.0.5", "D:/asynctest/vlc-2.0.4",
-            //    "D:/asynctest/vlc-2.0.5-ouput", "D:/asynctest/vlc-2.0.5-ouputauthen",
-            //    "D:/asynctest/vlc-2.0.5-tempfiles");
+            SyncFolder("D:/asynctest/vlc5z", "D:/asynctest/vlc4z",
+                "D:/asynctest/vlc5z-ouput", "D:/asynctest/vlc5z-ouputauthen",
+                "D:/asynctest/vlc5z-tempfiles");
 
-            CompareFolder("D:/asynctest/vlc-2.0.5-ouput", "D:/asynctest/vlc-2.0.5-ouputauthen");
+            var a = CompareFolder("D:/asynctest/vlc5z-ouput", "D:/asynctest/vlc5z-ouputauthen");
         }
 
         // Only use the last 24 bits
@@ -266,6 +266,8 @@ namespace ASync
                         {
                             Console.WriteLine("Failed verification, inceases r to {0}", additionalXValue);
                         }
+
+                        cpFn = tempFolderPath + relativePath + string.Format(".cp.dat{0}", additionalXValue);
                         
                         GenCPFile(fOldFn, bfFn, cpFn, additionalXValue);
                         
@@ -819,21 +821,21 @@ namespace ASync
                 fLength = (int)fs.Length;
             }
 
+            var lmWindow = fLength / 512;
+            lmWindow = lmWindow < 4 ? 4 : lmWindow;
+
 
             Task.Run(() =>
             {
                 using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var fh = new FileHash(64);
+                    var fh = new FileHash(4);
                     fh.StreamToHashValues(fs, rollingHash);
                 }
             });
 
             Task.Run(() =>
             {
-                var lmWindow = fLength / 200;
-                lmWindow = lmWindow < 8 ? 8 : lmWindow;
-
                 var lm = new LocalMaxima(lmWindow);
                 lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
             });
