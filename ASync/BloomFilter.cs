@@ -109,10 +109,10 @@ namespace ASync
 
         public static ICollection<HashAlgorithm> DefaultHashFuncs()
         {
-            var h1 = new SameHash();
+            //var h1 = new SameHash();
             var hList = new List<HashAlgorithm>();
-            hList.Add(h1);
-            for (var i = 0; i < 4; ++i)
+            //hList.Add(h1);
+            for (var i = 0; i < 16; ++i)
             {
                 var mmh = new MurmurHash3_x86_32();
                 mmh.Seed = (uint)i;

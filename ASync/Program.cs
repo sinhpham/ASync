@@ -167,12 +167,27 @@ namespace ASync
             //        break;
             //}
 
+            var newFolder = "D:/asynctest/vlc5z";
+            var oldFolder = "D:/asynctest/vlc4z";
 
-            SyncFolder("D:/asynctest/vlc5z", "D:/asynctest/vlc4z",
-                "D:/asynctest/vlc5z-ouput", "D:/asynctest/vlc5z-ouputauthen",
-                "D:/asynctest/vlc5z-tempfiles");
 
-            var a = CompareFolder("D:/asynctest/vlc5z-ouput", "D:/asynctest/vlc5z-ouputauthen");
+            var outFolder = newFolder + "-ouput";
+            var outAuthnFolder = newFolder + "-outputauthen";
+            var tempFolder = newFolder + "temp";
+
+
+            SyncFolderBFFixedBlock(newFolder, oldFolder,
+                outFolder, outAuthnFolder,
+                tempFolder);
+
+            var a = CompareFolder(outFolder, outAuthnFolder);
+
+
+
+
+            //ASyncFixedBlock.Sync("old.dat", "new.dat", "fn.dat");
+
+            //ASyncFixedBlock.Sync("fileOld.pdf", "fileNew.pdf", "fn.pdf");
         }
 
         // Only use the last 24 bits
@@ -213,17 +228,62 @@ namespace ASync
 
                 if (fileABytes.Length != fileBBytes.Length)
                 {
-                    return false;
+                    throw new InvalidDataException();
                 }
                 for (var i = 0; i < fileABytes.Length; ++i)
                 {
                     if (fileABytes[i] != fileBBytes[i])
                     {
-                        return false;
+                        throw new InvalidDataException();
                     }
                 }
             }
             return true;
+        }
+
+        static void SyncFolderBFFixedBlock(string newFolderPath, string oldFolderPath,
+            string outputFolderPath, string outputAuthenticPath,
+            string tempFolderPath)
+        {
+            var fileList = new List<FileInfo>();
+            FullDirList(new DirectoryInfo(newFolderPath), fileList);
+
+            foreach (var fNew in fileList)
+            {
+                var relativePath = fNew.FullName.Remove(0, newFolderPath.Length).Replace("\\", "/");
+
+                var fOldFn = oldFolderPath + relativePath;
+                if (File.Exists(fOldFn))
+                {
+                    Console.WriteLine(relativePath);
+
+                    // Copy to authentic path
+                    var authenFn = outputAuthenticPath + relativePath;
+                    var authenFi = new FileInfo(authenFn);
+                    authenFi.Directory.Create();
+                    File.Copy(fNew.FullName, authenFn, true);
+
+                    // Do synchronization
+                    var bfFn = tempFolderPath + relativePath + ".bf.dat";
+                    var deltaFn = tempFolderPath + relativePath + ".delta.dat";
+                    var missingHVFn = tempFolderPath + relativePath + ".mh.dat";
+                    var missingDelta = tempFolderPath + relativePath + ".md.dat";
+
+                    var fileInfo = new FileInfo(bfFn);
+                    fileInfo.Directory.Create();
+
+                    var oFn = outputFolderPath + relativePath;
+                    var oFileInfo = new FileInfo(oFn);
+                    oFileInfo.Directory.Create();
+
+
+                    ASyncFixedBlock.GenBFFileFromFixedBlockOfOldFile(fOldFn, bfFn);
+                    ASyncFixedBlock.GenDeltaFileFromBFFixedSize(fNew.FullName, bfFn, deltaFn);
+                    ASyncFixedBlock.GenMissingHashFile(fOldFn, deltaFn, missingHVFn);
+                    ASyncFixedBlock.GenDeltaFromMissing(fNew.FullName, missingHVFn, missingDelta);
+                    ASyncFixedBlock.PatchFile(fOldFn, deltaFn, missingDelta, oFn);
+                }
+            }
         }
 
         static void SyncFolder(string newFolderPath, string oldFolderPath,
@@ -281,6 +341,8 @@ namespace ASync
                 }
             }
         }
+
+        
 
         static List<int> GenXValues(int num)
         {
@@ -821,7 +883,7 @@ namespace ASync
                 fLength = (int)fs.Length;
             }
 
-            var lmWindow = fLength / 512;
+            var lmWindow = fLength / (512);
             lmWindow = lmWindow < 4 ? 4 : lmWindow;
 
 
@@ -837,7 +899,7 @@ namespace ASync
             Task.Run(() =>
             {
                 var lm = new LocalMaxima(lmWindow);
-                lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
+                lm.CalcNew(rollingHash, localMaximaPos);
             });
 
             Task.Run(() =>

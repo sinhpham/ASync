@@ -194,6 +194,24 @@ namespace ASync
             return retPos.ToList().Select(pos => new KeyValuePair<int, int>(pos, list[pos])).ToList();
         }
 
+        public void CalcNew(BlockingCollectionDataChunk<uint> inputList, BlockingCollectionDataChunk<int> outputPos)
+        {
+            var currBlockPos = 0;
+            foreach (var item in inputList.BlockingCollection.GetConsumingEnumerable())
+            {
+                for (var i = 0; i < item.DataSize; ++i)
+                {
+                    var currHash = item.Data[i];
+                    if (currHash % (2 * 512) == 0)
+                    {
+                        outputPos.Add(currBlockPos + i);
+                    }
+                }
+                currBlockPos += item.DataSize;
+            }
+            outputPos.CompleteAdding();
+        }
+
         public void CalcUsingBlockAlgo(BlockingCollectionDataChunk<uint> inputList, BlockingCollectionDataChunk<int> outputPos)
         {
             var currPos = 0;
