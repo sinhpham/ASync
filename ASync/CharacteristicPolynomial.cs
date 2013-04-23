@@ -130,7 +130,7 @@ namespace ASync
             // p should be a prime number
             if (b == 0)
             {
-                throw new InvalidOperationException();
+                throw new DivideByZeroException();
             }
 
             var ib = InversionGF(b);

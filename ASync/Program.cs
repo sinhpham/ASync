@@ -167,8 +167,8 @@ namespace ASync
             //        break;
             //}
 
-            var newFolder = "D:/asynctest/vlc5z";
-            var oldFolder = "D:/asynctest/vlc4z";
+            var newFolder = "D:/asynctest/WinMerge-2.14.0-exe";
+            var oldFolder = "D:/asynctest/WinMerge-2.12.4-exe";
 
 
             var outFolder = newFolder + "-ouput";
@@ -176,7 +176,7 @@ namespace ASync
             var tempFolder = newFolder + "temp";
 
 
-            SyncFolderBFFixedBlock(newFolder, oldFolder,
+            SyncFolder(newFolder, oldFolder,
                 outFolder, outAuthnFolder,
                 tempFolder);
 
@@ -877,21 +877,21 @@ namespace ASync
             //var sw = new Stopwatch();
             //sw.Start();
 
-            var fLength = 0;
-            using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                fLength = (int)fs.Length;
-            }
+            //var fLength = 0;
+            //using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
+            //{
+            //    fLength = (int)fs.Length;
+            //}
 
-            var lmWindow = fLength / (512);
-            lmWindow = lmWindow < 4 ? 4 : lmWindow;
+            //var lmWindow = fLength / (512);
+            var lmWindow = 32 * 1024;
 
 
             Task.Run(() =>
             {
                 using (var fs = new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read))
                 {
-                    var fh = new FileHash(4);
+                    var fh = new FileHash(16);
                     fh.StreamToHashValues(fs, rollingHash);
                 }
             });
@@ -899,7 +899,7 @@ namespace ASync
             Task.Run(() =>
             {
                 var lm = new LocalMaxima(lmWindow);
-                lm.CalcNew(rollingHash, localMaximaPos);
+                lm.CalcUsingBlockAlgo(rollingHash, localMaximaPos);
             });
 
             Task.Run(() =>

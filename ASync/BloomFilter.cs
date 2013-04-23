@@ -112,7 +112,7 @@ namespace ASync
             //var h1 = new SameHash();
             var hList = new List<HashAlgorithm>();
             //hList.Add(h1);
-            for (var i = 0; i < 16; ++i)
+            for (var i = 0; i < 5; ++i)
             {
                 var mmh = new MurmurHash3_x86_32();
                 mmh.Seed = (uint)i;
