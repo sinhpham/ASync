@@ -15,8 +15,5 @@
     <copyright>Copyright (c) 2005 - 2013 Giacomo Stelluti Scala</copyright>
     <language />
     <tags>command line argument option parser parsing library syntax shell</tags>
-    <references>
-      <reference file="CommandLine.dll" />
-    </references>
   </metadata>
 </package>

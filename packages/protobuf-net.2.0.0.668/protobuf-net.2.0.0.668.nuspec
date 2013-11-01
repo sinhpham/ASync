@@ -3,6 +3,7 @@
   <metadata>
     <id>protobuf-net</id>
     <version>2.0.0.668</version>
+    <title>protobuf-net</title>
     <authors>Marc Gravell</authors>
     <owners>Marc Gravell</owners>
     <licenseUrl>http://protobuf-net.googlecode.com/svn/trunk/Licence.txt</licenseUrl>
@@ -39,6 +40,7 @@
       * 2.0.0.602 - added precompiler support for internal-types and [InternalsVisibleTo(...)]-forwarding
                   - made AllowParseableTypes available on default type-model
       * 2.0.0.601 - added phone8 support</releaseNotes>
+    <copyright />
     <language>en-US</language>
     <tags>binary serialization protocol buffers protobuf deserialization</tags>
   </metadata>
