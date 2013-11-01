@@ -114,13 +114,13 @@ namespace ASync
         static void Main(string[] args)
         {
             var clientDic = new Dictionary<string, string>();
-            for (var i = 0; i < 1000; ++i)
+            for (var i = 0; i < 10; ++i)
             {
                 clientDic.Add(i.ToString(), i.ToString());
             }
 
             var serverDic = new Dictionary<string, string>();
-            for (var i = 0; i < 1100; ++i)
+            for (var i = 0; i < 20; ++i)
             {
                 serverDic.Add(i.ToString(), (i).ToString());
             }
@@ -136,7 +136,7 @@ namespace ASync
                 Serializer.Serialize(f, serverDic);
             }
 
-            SyncDic(clientDic, serverDic);
+            SyncDicSetRecon(clientDic, serverDic, 23);
 
             var ans = AreTheSame(clientDic, serverDic);
         }
@@ -187,9 +187,15 @@ namespace ASync
             {
                 clientDic[item.Key] = item.Value;
             }
+
+        }
+
+        static void SyncDicSetRecon<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Dictionary<TKey, TValue> serverDic, int d0)
+        {
+            var hFunc = new MurmurHash3_x86_32();
             // Phase 2: using set reconciliation
             var _cp = new CharacteristicPolynomial(FieldOrder);
-            var xVal = GenXValues(wrongNum + VerificationNum);
+            var xVal = GenXValues(d0 + VerificationNum);
 
             var clientSet = new List<int>();
             foreach (var item in clientDic)
@@ -198,7 +204,7 @@ namespace ASync
                 var bBlock = Helper.GetBytes(block);
 
                 var hv = hFunc.ComputeHash(bBlock);
-                var hIntValue = BitConverter.ToInt32(hv, 0);
+                var hIntValue = BitConverter.ToInt32(hv, 0) & HashBitMask;
                 clientSet.Add(hIntValue);
             }
 
@@ -213,7 +219,7 @@ namespace ASync
                 var bBlock = Helper.GetBytes(block);
 
                 var hv = hFunc.ComputeHash(bBlock);
-                var hIntValue = BitConverter.ToInt32(hv, 0);
+                var hIntValue = BitConverter.ToInt32(hv, 0) & HashBitMask;
                 serverSet.Add(hIntValue);
                 hashToKey.Add(hIntValue, item.Key);
             }
@@ -228,15 +234,15 @@ namespace ASync
                 out p, out q);
             var missingFromOldList = _cp.Factoring(p);
 
-            var patchPhase2 = new Dictionary<TKey, TValue>();
+            var patchDic = new Dictionary<TKey, TValue>();
             foreach (var hValue in missingFromOldList)
             {
                 var key = hashToKey[hValue];
-                patchPhase2[key] = serverDic[key];
+                patchDic[key] = serverDic[key];
             }
 
             // Client side
-            foreach (var item in patchPhase2)
+            foreach (var item in patchDic)
             {
                 clientDic[item.Key] = item.Value;
             }
