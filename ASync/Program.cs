@@ -122,9 +122,9 @@ namespace ASync
             var serverDic = new Dictionary<string, string>();
             for (var i = 0; i < 1100; ++i)
             {
-                serverDic.Add(i.ToString(), i.ToString());
+                serverDic.Add(i.ToString(), (i).ToString());
             }
-
+            var a = AreTheSame(clientDic, serverDic);
 
             using (var f = File.Create("clientDic.dat"))
             {
@@ -136,9 +136,12 @@ namespace ASync
                 Serializer.Serialize(f, serverDic);
             }
 
-            SyncDic(clientDic, serverDic);
-            
+            SyncDicNaive(clientDic, serverDic);
+
+            var ans = AreTheSame(clientDic, serverDic);
         }
+
+        
 
         static void SyncDic<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Dictionary<TKey, TValue> serverDic)
         {
@@ -157,6 +160,7 @@ namespace ASync
             }
 
             // Server side
+            var hitNum = 0;
             var patchDic = new Dictionary<TKey, TValue>();
             foreach (var item in serverDic)
             {
@@ -168,9 +172,15 @@ namespace ASync
                 {
                     patchDic.Add(item.Key, item.Value);
                 }
+                else
+                {
+                    hitNum++;
+                }
             }
 
             var wrongNum = serverDic.Count * bf.FalsePositive;
+
+            var d0 = Helper.EstimateD0(bf.Count, serverDic.Count, hitNum, bf);
 
             // Client side
             foreach (var item in patchDic)
@@ -222,6 +232,27 @@ namespace ASync
             {
                 clientDic[item.Key] = item.Value;
             }
+        }
+
+        static bool AreTheSame<TKey, TValue>(Dictionary<TKey, TValue> dic1, Dictionary<TKey, TValue> dic2)
+        {
+            if (dic1.Count != dic2.Count)
+            {
+                return false;
+            }
+            foreach (var item in dic1)
+            {
+                if (!dic2.ContainsKey(item.Key))
+                {
+                    return false;
+                }
+                else if (!dic2[item.Key].Equals(item.Value))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         // Only use the last 24 bits
