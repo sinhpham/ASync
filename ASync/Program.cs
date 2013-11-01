@@ -136,7 +136,51 @@ namespace ASync
                 Serializer.Serialize(f, serverDic);
             }
 
+            SyncDic(clientDic, serverDic);
+            
+        }
 
+        static void SyncDic<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Dictionary<TKey, TValue> serverDic)
+        {
+            var bf = new BloomFilter(clientDic.Count * 8, BloomFilter.DefaultHashFuncs());
+            var hFunc = new MurmurHash3_x86_32();
+
+            // Client side.
+            foreach (var item in clientDic)
+            {
+                var block = item.Key + "-" + item.Value;
+                var bBlock = Helper.GetBytes(block);
+
+                var hv = hFunc.ComputeHash(bBlock);
+
+                bf.Add(hv);
+            }
+
+            // Server side
+            var patchDic = new Dictionary<TKey, TValue>();
+            foreach (var item in serverDic)
+            {
+                var block = item.Key + "-" + item.Value;
+                var bBlock = Helper.GetBytes(block);
+
+                var hv = hFunc.ComputeHash(bBlock);
+                if (!bf.Contains(hv))
+                {
+                    patchDic.Add(item.Key, item.Value);
+                }
+            }
+
+            var wrongNum = serverDic.Count * bf.FalsePositive;
+
+            // Client side
+            foreach (var item in patchDic)
+            {
+                clientDic[item.Key] = item.Value;
+            }
+        }
+
+        static void SyncDicNaive<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Dictionary<TKey, TValue> serverDic)
+        {
             var hFunc = new MurmurHash3_x86_32();
 
             // Client side.
@@ -158,7 +202,7 @@ namespace ASync
             {
                 clientHVSet.Add(hv);
             }
-            var patchDic = new Dictionary<string, string>();
+            var patchDic = new Dictionary<TKey, TValue>();
             foreach (var item in serverDic)
             {
                 var block = item.Key + "-" + item.Value;
