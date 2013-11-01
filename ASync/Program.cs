@@ -136,12 +136,12 @@ namespace ASync
                 Serializer.Serialize(f, serverDic);
             }
 
-            SyncDicNaive(clientDic, serverDic);
+            SyncDic(clientDic, serverDic);
 
             var ans = AreTheSame(clientDic, serverDic);
         }
 
-        
+
 
         static void SyncDic<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Dictionary<TKey, TValue> serverDic)
         {
@@ -178,15 +178,69 @@ namespace ASync
                 }
             }
 
-            var wrongNum = serverDic.Count * bf.FalsePositive;
+            var wrongNum = (int)Math.Ceiling(serverDic.Count * bf.FalsePositive);
 
-            var d0 = Helper.EstimateD0(bf.Count, serverDic.Count, hitNum, bf);
+            //var d0 = Helper.EstimateD0(bf.Count, serverDic.Count, hitNum, bf);
 
             // Client side
             foreach (var item in patchDic)
             {
                 clientDic[item.Key] = item.Value;
             }
+            // Phase 2: using set reconciliation
+            var _cp = new CharacteristicPolynomial(FieldOrder);
+            var xVal = GenXValues(wrongNum + VerificationNum);
+
+            var clientSet = new List<int>();
+            foreach (var item in clientDic)
+            {
+                var block = item.Key + "-" + item.Value;
+                var bBlock = Helper.GetBytes(block);
+
+                var hv = hFunc.ComputeHash(bBlock);
+                var hIntValue = BitConverter.ToInt32(hv, 0);
+                clientSet.Add(hIntValue);
+            }
+
+            var cpClientSet = _cp.Calc(clientSet, xVal);
+
+            // Server side
+            var serverSet = new List<int>();
+            var hashToKey = new Dictionary<int, TKey>();
+            foreach (var item in serverDic)
+            {
+                var block = item.Key + "-" + item.Value;
+                var bBlock = Helper.GetBytes(block);
+
+                var hv = hFunc.ComputeHash(bBlock);
+                var hIntValue = BitConverter.ToInt32(hv, 0);
+                serverSet.Add(hIntValue);
+                hashToKey.Add(hIntValue, item.Key);
+            }
+            var cpServerSet = _cp.Calc(serverSet, xVal);
+
+            var cpaocpb = _cp.Div(cpClientSet, cpServerSet);
+
+            List<int> p;
+            List<int> q;
+            _cp.Interpolate(cpaocpb, xVal,
+                serverDic.Count - clientDic.Count,
+                out p, out q);
+            var missingFromOldList = _cp.Factoring(p);
+
+            var patchPhase2 = new Dictionary<TKey, TValue>();
+            foreach (var hValue in missingFromOldList)
+            {
+                var key = hashToKey[hValue];
+                patchPhase2[key] = serverDic[key];
+            }
+
+            // Client side
+            foreach (var item in patchPhase2)
+            {
+                clientDic[item.Key] = item.Value;
+            }
+
         }
 
         static void SyncDicNaive<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Dictionary<TKey, TValue> serverDic)
@@ -372,7 +426,7 @@ namespace ASync
                     var authenFi = new FileInfo(authenFn);
                     authenFi.Directory.Create();
                     File.Copy(fNew.FullName, authenFn, true);
-                    
+
                     // Do synchronization
                     var bfFn = tempFolderPath + relativePath + ".bf.dat";
                     var cpFn = tempFolderPath + relativePath + ".cp.dat";
@@ -393,9 +447,9 @@ namespace ASync
                         }
 
                         cpFn = tempFolderPath + relativePath + string.Format(".cp.dat{0}", additionalXValue);
-                        
+
                         GenCPFile(fOldFn, bfFn, cpFn, additionalXValue);
-                        
+
                         ok = GenDeltaFile(fNew.FullName, cpFn, deltaFn);
                     }
 
@@ -407,7 +461,7 @@ namespace ASync
             }
         }
 
-        
+
 
         static List<int> GenXValues(int num)
         {
