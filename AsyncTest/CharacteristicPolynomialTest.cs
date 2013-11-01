@@ -41,7 +41,7 @@ namespace AsyncTest
             CollectionAssert.AreEqual(new List<int> { 64, 1 }, p);
             CollectionAssert.AreEqual(new List<int> { 86, 59, 1 }, q);
             CollectionAssert.AreEqual(new List<int> { 33 }, pFactors);
-            CollectionAssert.AreEqual(new List<int> { 10,28 }, qFactors);
+            CollectionAssert.AreEqual(new List<int> { 10, 28 }, qFactors);
         }
 
         [TestMethod]
@@ -73,6 +73,37 @@ namespace AsyncTest
             CollectionAssert.AreEqual(new List<int> { 60, 1 }, q);
             CollectionAssert.AreEqual(new List<int> { 2, 19 }, pFactors);
             CollectionAssert.AreEqual(new List<int> { 7 }, qFactors);
+        }
+
+        [TestMethod]
+        public void CPTestCorrect3()
+        {
+            var _cp = new CharacteristicPolynomial(7);
+
+            var sa = new List<int> { 1, 2 };
+            var sb = new List<int> { 1, 3 };
+            var xVal = new List<int> { -1, -2 };
+
+            var cpa = _cp.Calc(sa, xVal);
+            var cpb = _cp.Calc(sb, xVal);
+            var cpaocpb = _cp.Div(cpa, cpb);
+
+            List<int> p;
+            List<int> q;
+            _cp.Interpolate(cpaocpb, xVal,
+                sa.Count - sb.Count,
+                out p, out q);
+
+            var pFactors = _cp.Factoring(p);
+            var qFactors = _cp.Factoring(q);
+
+            CollectionAssert.AreEqual(new List<int> { 6, 5 }, cpa);
+            CollectionAssert.AreEqual(new List<int> { 1, 1 }, cpb);
+            CollectionAssert.AreEqual(new List<int> { 6, 5 }, cpaocpb);
+            //CollectionAssert.AreEqual(new List<int> { 2 }, p);
+            //CollectionAssert.AreEqual(new List<int> { 60, 1 }, q);
+            CollectionAssert.AreEqual(new List<int> { 2 }, pFactors);
+            CollectionAssert.AreEqual(new List<int> { 3 }, qFactors);
         }
     }
 }
