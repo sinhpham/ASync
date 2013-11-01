@@ -113,81 +113,71 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            //logger.Info("Started");
+            var clientDic = new Dictionary<string, string>();
+            for (var i = 0; i < 1000; ++i)
+            {
+                clientDic.Add(i.ToString(), i.ToString());
+            }
 
-            //string invokedVerb = "";
-            //object invokedVerbInstance = null;
-            //var options = new Options();
-
-            //if (args.Length == 0)
-            //{
-            //    Console.Write(options.GetUsage());
-            //    Sync("fileOld.pdf", "fileNew.pdf", "fileOut.pdf");
-            //    return;
-            //}
-
-            //if (!CommandLine.Parser.Default.ParseArguments(args, options,
-            //    (verb, subOptions) =>
-            //    {
-            //        // if parsing succeeds the verb name and correct instance
-            //        // will be passed to onVerbCommand delegate (string,object)
-            //        invokedVerb = verb;
-            //        invokedVerbInstance = subOptions;
-            //    }))
-            //{
-            //    if (invokedVerb != "")
-            //    {
-            //        Console.Write(options.GetUsage(invokedVerb));
-            //    }
-            //    else
-            //    {
-            //        Console.Write(options.GetUsage());
-            //    }
-            //    return;
-            //}
+            var serverDic = new Dictionary<string, string>();
+            for (var i = 0; i < 1100; ++i)
+            {
+                serverDic.Add(i.ToString(), i.ToString());
+            }
 
 
-            //switch (invokedVerb)
-            //{
-            //    case "genbf":
-            //        var bfOptions = (BloomFilterSubOptions)invokedVerbInstance;
-            //        GenBFFile(bfOptions.Input, bfOptions.BFFile);
-            //        break;
-            //    case "gencp":
-            //        var cpOptions = (CharacteristicPolynomialSubOptions)invokedVerbInstance;
-            //        GenCPFile(cpOptions.Input, cpOptions.BFFile, cpOptions.Ouput, cpOptions.AdditionalXVal);
-            //        break;
-            //    case "gend":
-            //        var dOptions = (DeltaFileSubOptions)invokedVerbInstance;
-            //        GenDeltaFile(dOptions.Input, dOptions.CPFile, dOptions.Ouput);
-            //        break;
-            //    case "patch":
-            //        var pOptions = (PatchFileSubOptions)invokedVerbInstance;
-            //        PatchFile(pOptions.Input, pOptions.DeltaFile, pOptions.Ouput);
-            //        break;
-            //}
+            using (var f = File.Create("clientDic.dat"))
+            {
+                Serializer.Serialize(f, clientDic);
+            }
 
-            var newFolder = "D:/asynctest/WinMerge-2.14.0-exe";
-            var oldFolder = "D:/asynctest/WinMerge-2.12.4-exe";
+            using (var f = File.Create("serverDic.dat"))
+            {
+                Serializer.Serialize(f, serverDic);
+            }
 
 
-            var outFolder = newFolder + "-ouput";
-            var outAuthnFolder = newFolder + "-outputauthen";
-            var tempFolder = newFolder + "temp";
+            var hFunc = new MurmurHash3_x86_32();
 
+            // Client side.
+            var clientHValues = new List<int>();
+            foreach (var item in clientDic)
+            {
+                var block = item.Key + "-" + item.Value;
+                var bBlock = Helper.GetBytes(block);
 
-            SyncFolder(newFolder, oldFolder,
-                outFolder, outAuthnFolder,
-                tempFolder);
+                var hv = hFunc.ComputeHash(bBlock);
+                var hIntValue = BitConverter.ToInt32(hv, 0);
 
-            var a = CompareFolder(outFolder, outAuthnFolder);
+                clientHValues.Add(hIntValue);
+            }
 
+            // Server side.
+            var clientHVSet = new HashSet<int>();
+            foreach (var hv in clientHValues)
+            {
+                clientHVSet.Add(hv);
+            }
+            var patchDic = new Dictionary<string, string>();
+            foreach (var item in serverDic)
+            {
+                var block = item.Key + "-" + item.Value;
+                var bBlock = Helper.GetBytes(block);
 
+                var hv = hFunc.ComputeHash(bBlock);
+                var hIntValue = BitConverter.ToInt32(hv, 0);
 
+                if (!clientHVSet.Contains(hIntValue))
+                {
+                    patchDic.Add(item.Key, item.Value);
+                }
+            }
 
-            //ASyncFixedBlock.Sync("old.dat", "new.dat", "fn.dat");
-
-            //ASyncFixedBlock.Sync("fileOld.pdf", "fileNew.pdf", "fn.pdf");
+            // Client side
+            foreach (var item in patchDic)
+            {
+                clientDic[item.Key] = item.Value;
+            }
         }
 
         // Only use the last 24 bits
