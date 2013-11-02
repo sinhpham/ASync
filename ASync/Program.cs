@@ -114,13 +114,13 @@ namespace ASync
         static void Main(string[] args)
         {
             var clientDic = new Dictionary<string, string>();
-            for (var i = 0; i < 10; ++i)
+            for (var i = 0; i < 1000; ++i)
             {
                 clientDic.Add(i.ToString(), i.ToString());
             }
 
             var serverDic = new Dictionary<string, string>();
-            for (var i = 0; i < 20; ++i)
+            for (var i = 0; i < 1050; ++i)
             {
                 serverDic.Add(i.ToString(), (i).ToString());
             }
@@ -136,12 +136,10 @@ namespace ASync
                 Serializer.Serialize(f, serverDic);
             }
 
-            SyncDicSetRecon(clientDic, serverDic, 23);
+            SyncDic(clientDic, serverDic);
 
             var ans = AreTheSame(clientDic, serverDic);
         }
-
-
 
         static void SyncDic<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Dictionary<TKey, TValue> serverDic)
         {
@@ -178,9 +176,10 @@ namespace ASync
                 }
             }
 
-            var wrongNum = (int)Math.Ceiling(serverDic.Count * bf.FalsePositive);
+            var estimatedDo = Helper.EstimateD0(clientDic.Count, serverDic.Count, hitNum, bf) + 3;
+            //var wrongNum = (int)Math.Ceiling(serverDic.Count * bf.FalsePositive);
 
-            //var d0 = Helper.EstimateD0(bf.Count, serverDic.Count, hitNum, bf);
+            var d0 = estimatedDo - patchDic.Count;
 
             // Client side
             foreach (var item in patchDic)
@@ -188,6 +187,7 @@ namespace ASync
                 clientDic[item.Key] = item.Value;
             }
 
+            SyncDicSetRecon(clientDic, serverDic, d0);
         }
 
         static void SyncDicSetRecon<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Dictionary<TKey, TValue> serverDic, int d0)
@@ -195,7 +195,7 @@ namespace ASync
             var hFunc = new MurmurHash3_x86_32();
             // Phase 2: using set reconciliation
             var _cp = new CharacteristicPolynomial(FieldOrder);
-            var xVal = GenXValues(d0 + VerificationNum);
+            var xVal = GenXValues(FieldOrder, d0);
 
             var clientSet = new List<int>();
             foreach (var item in clientDic)
@@ -230,9 +230,9 @@ namespace ASync
             List<int> p;
             List<int> q;
             _cp.Interpolate(cpaocpb, xVal,
-                serverDic.Count - clientDic.Count,
+                clientDic.Count - serverDic.Count,
                 out p, out q);
-            var missingFromOldList = _cp.Factoring(p);
+            var missingFromOldList = _cp.Factoring(q);
 
             var patchDic = new Dictionary<TKey, TValue>();
             foreach (var hValue in missingFromOldList)
@@ -469,10 +469,10 @@ namespace ASync
 
 
 
-        static List<int> GenXValues(int num)
+        static List<int> GenXValues(int fieldOrder, int num)
         {
             var ret = new List<int>(num);
-            var addConst = 0x1000000;
+            var addConst = fieldOrder - num;
 
             for (var i = 0; i < num; ++i)
             {
@@ -530,7 +530,7 @@ namespace ASync
             var d0 = (int)(Helper.EstimateD0(bf.Count, setOld.Count, n0, bf) + 3);
 
             var _cp = new CharacteristicPolynomial(FieldOrder);
-            var xVal = GenXValues(d0 + additionalXValues + VerificationNum);
+            var xVal = GenXValues(FieldOrder, d0 + additionalXValues + VerificationNum);
 
             var cpb = _cp.Calc(setOld, xVal);
 
@@ -573,7 +573,7 @@ namespace ASync
 
             var _cp = new CharacteristicPolynomial(FieldOrder);
             var d0 = cpb.Count;
-            var xVal = GenXValues(d0);
+            var xVal = GenXValues(FieldOrder, d0);
 
             var cpa = _cp.Calc(setNew, xVal);
             var cpaocpb = _cp.Div(cpa, cpb);
@@ -586,7 +586,7 @@ namespace ASync
 
             // TODO: verification.
             // If verification failed => return false;
-            var xValVer = GenXValues(d0 + VerificationNum);
+            var xValVer = GenXValues(FieldOrder, d0 + VerificationNum);
             xValVer.RemoveRange(0, d0);
             var cpaVer = _cp.Calc(setNew, xValVer);
             var cpaVeroCpbVer = _cp.Div(cpaVer, cpbVer);
