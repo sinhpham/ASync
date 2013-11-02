@@ -57,7 +57,9 @@
     <Compile Include="DataChunk.cs" />
     <Compile Include="FileHash.cs" />
     <Compile Include="FileParitionHash.cs" />
+    <Compile Include="FileSync.cs" />
     <Compile Include="Helper.cs" />
+    <Compile Include="KeyValSync.cs" />
     <Compile Include="LocalMaxima.cs" />
     <Compile Include="MurmurHash3_x86_32.cs" />
     <Compile Include="Program.cs" />
