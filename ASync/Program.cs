@@ -124,7 +124,7 @@ namespace ASync
             {
                 serverDic.Add(i.ToString(), (i).ToString());
             }
-            var a = KeyValSync.AreTheSame(clientDic, serverDic);
+
 
             using (var f = File.Create("clientDic.dat"))
             {
@@ -136,9 +136,30 @@ namespace ASync
                 Serializer.Serialize(f, serverDic);
             }
 
-            KeyValSync.SyncDic(clientDic, serverDic);
+            //var chfn = "clienthashvalues.dat";
+            //var pfn = "patch.dat";
 
-            var ans = KeyValSync.AreTheSame(clientDic, serverDic);
+            //KeyValSyncNaive.ClientGenHashFile(clientDic, chfn);
+            //KeyValSyncNaive.ServerGenPatchFile(serverDic, chfn, pfn);
+            //KeyValSyncNaive.ClientPatch(clientDic, pfn);
+
+            var bffile = "bfsr-bf.dat";
+            var p1file = "bfsr-p1.dat";
+            var cpfile = "bfsr-cp.dat";
+            var p2file = "bfsr-p2.dat";
+            KeyValSync.ClientGenBfFile(clientDic, bffile);
+            KeyValSync.ServerGenPatch1File(serverDic, bffile, p1file);
+            KeyValSync.ClientPatchAndGenCPFile(clientDic, p1file, cpfile);
+            KeyValSync.ServerGenPatch2(serverDic, cpfile, p2file);
+            KeyValSync.ClientPatch(clientDic, p2file);
+
+            //KeyValSync.SyncDic(clientDic, serverDic);
+
+            if (!KeyValSync.AreTheSame(clientDic, serverDic))
+            {
+                throw new InvalidDataException();
+            }
+
         }
     }
 }
