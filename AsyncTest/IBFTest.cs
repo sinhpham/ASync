@@ -26,11 +26,9 @@ namespace AsyncTest
             var numberOfValuesToAdd = 5000;
             for (int i = 0; i < numberOfValuesToAdd; i++)
             {
-                var str = string.Format("Test {0}", i);
-                var ba = System.Text.Encoding.UTF8.GetBytes(str);
-                Assert.IsFalse(filter.Contains(i, ba, 0, ba.Length));
-                filter.Add(i, ba, 0, ba.Length);
-                Assert.IsTrue(filter.Contains(i, ba, 0, ba.Length));
+                Assert.IsFalse(filter.Contains(i));
+                filter.Add(i);
+                Assert.IsTrue(filter.Contains(i));
             }
         }
 
@@ -54,13 +52,11 @@ namespace AsyncTest
 
             foreach (var i in l1)
             {
-                var bArr = BitConverter.GetBytes(i);
-                ibf1.Add(i, bArr);
+                ibf1.Add(i);
             }
             foreach (var i in l2)
             {
-                var bArr = BitConverter.GetBytes(i);
-                ibf2.Add(i, bArr);
+                ibf2.Add(i);
             }
 
             var sub = ibf1.Substract(ibf2);
@@ -96,8 +92,7 @@ namespace AsyncTest
 
             foreach (var i in intList)
             {
-                var bArr = BitConverter.GetBytes(i);
-                ibf.Add(i, bArr);
+                ibf.Add(i);
             }
 
             var l1ml2 = new List<int>();

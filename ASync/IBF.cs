@@ -55,34 +55,24 @@ namespace ASync
             };
         }
 
-        public void Add(int id, byte[] data)
-        {
-            Add(id, data, 0, data.Length);
-        }
-
-        public void Add(int id, byte[] data, int offset, int count)
+        public void Add(int id)
         {
             foreach (var h in _hFuncs)
             {
-                var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(data, offset, count), 0) % Size);
+                var idx = CalcIdx(id, h);
 
-                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(id)), 0);
+                var hVal = CalcHcVal(id);
                 _count[idx]++;
                 _idSum[idx] ^= id;
                 _hashSum[idx] ^= hVal;
             }
         }
 
-        public bool Contains(int id, byte[] data)
-        {
-            return Contains(id, data, 0, data.Length);
-        }
-
-        public bool Contains(int id, byte[] data, int offset, int count)
+        public bool Contains(int id)
         {
             foreach (var h in _hFuncs)
             {
-                var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(data, offset, count), 0) % Size);
+                var idx = CalcIdx(id, h);
                 if (_count[idx] == 0)
                 {
                     return false;
@@ -91,18 +81,12 @@ namespace ASync
             return true;
         }
 
-        public void Remove(int id, byte[] data)
-        {
-            Remove(id, data, 0, data.Length);
-        }
-
-        public void Remove(int id, byte[] data, int offset, int count)
+        public void Remove(int id)
         {
             foreach (var h in _hFuncs)
             {
-                var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(data, offset, count), 0) % Size);
-
-                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(id)), 0);
+                var idx = CalcIdx(id, h);
+                var hVal = CalcHcVal(id);
                 _count[idx]--;
                 _idSum[idx] ^= id;
                 _hashSum[idx] ^= hVal;
@@ -154,12 +138,11 @@ namespace ASync
                 {
                     bma.Add(currId);
                 }
-                
+
                 foreach (var h in _hFuncs)
                 {
-                    var bArr = BitConverter.GetBytes(currId);
-                    var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(bArr), 0) % Size);
-                    var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(currId)), 0);
+                    var idx = CalcIdx(currId, h);
+                    var hVal = CalcHcVal(currId);
 
                     _count[idx] -= currCount;
                     _idSum[idx] ^= currId;
@@ -183,9 +166,19 @@ namespace ASync
 
         bool IsPure(int idx)
         {
-            var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(_idSum[idx])), 0);
+            var hVal = CalcHcVal(_idSum[idx]);
 
             return ((_count[idx] == 1 || _count[idx] == -1) && hVal == _hashSum[idx]);
+        }
+
+        int CalcIdx(int id, HashAlgorithm hFunc)
+        {
+            return (int)(BitConverter.ToUInt32(hFunc.ComputeHash(BitConverter.GetBytes(id)), 0) % Size);
+        }
+
+        int CalcHcVal(int id)
+        {
+            return BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(id)), 0);
         }
     }
 }

@@ -200,7 +200,7 @@ namespace ASync
 
                 var id = BitConverter.ToInt32(hFunc.ComputeHash(bBlock), 0);
 
-                ibf.Add(id, bBlock);
+                ibf.Add(id);
             }
 
             using (var file = File.Create(ibfFile))
@@ -229,7 +229,7 @@ namespace ASync
 
                 var id = BitConverter.ToInt32(hFunc.ComputeHash(bBlock), 0);
 
-                serverIBF.Add(id, bBlock);
+                serverIBF.Add(id);
                 idToKey.Add(id, item.Key);
             }
 
