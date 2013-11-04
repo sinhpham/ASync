@@ -66,7 +66,7 @@ namespace ASync
             {
                 var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(data, offset, count), 0) % Size);
 
-                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(data, offset, count), 0);
+                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(id)), 0);
                 _count[idx]++;
                 _idSum[idx] ^= id;
                 _hashSum[idx] ^= hVal;
@@ -102,7 +102,7 @@ namespace ASync
             {
                 var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(data, offset, count), 0) % Size);
 
-                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(data, offset, count), 0);
+                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(id)), 0);
                 _count[idx]--;
                 _idSum[idx] ^= id;
                 _hashSum[idx] ^= hVal;
@@ -159,7 +159,7 @@ namespace ASync
                 {
                     var bArr = BitConverter.GetBytes(currId);
                     var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(bArr), 0) % Size);
-                    var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(bArr), 0);
+                    var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(currId)), 0);
 
                     _count[idx] -= currCount;
                     _idSum[idx] ^= currId;
@@ -183,8 +183,7 @@ namespace ASync
 
         bool IsPure(int idx)
         {
-            var bArr = BitConverter.GetBytes(_idSum[idx]);
-            var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(bArr), 0);
+            var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(_idSum[idx])), 0);
 
             return ((_count[idx] == 1 || _count[idx] == -1) && hVal == _hashSum[idx]);
         }
