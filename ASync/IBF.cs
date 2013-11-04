@@ -7,13 +7,15 @@ using System.Threading.Tasks;
 
 namespace ASync
 {
-    class IBF
+    public class IBF
     {
         public IBF(int size, ICollection<HashAlgorithm> hashFunctions)
         {
             _hashSum = new int[size];
             _idSum = new int[size];
             _count = new int[size];
+
+            _hFuncs = hashFunctions;
         }
 
 
