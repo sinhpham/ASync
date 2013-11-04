@@ -114,13 +114,13 @@ namespace ASync
         static void Main(string[] args)
         {
             var clientDic = new Dictionary<string, string>();
-            for (var i = 0; i < 1000; ++i)
+            for (var i = 0; i < 0; ++i)
             {
                 clientDic.Add(i.ToString(), i.ToString());
             }
 
             var serverDic = new Dictionary<string, string>();
-            for (var i = 0; i < 1500; ++i)
+            for (var i = 0; i < 50000; ++i)
             {
                 serverDic.Add(i.ToString(), (i).ToString());
             }

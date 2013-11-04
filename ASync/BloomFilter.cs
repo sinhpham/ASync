@@ -76,6 +76,10 @@ namespace ASync
 
         public bool Contains(byte[] buffer, int offset, int count)
         {
+            if (BitLength == 0)
+            {
+                return false;
+            }
             foreach (var h in _hFuncs)
             {
                 var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(buffer, offset, count), 0) % BitLength);
