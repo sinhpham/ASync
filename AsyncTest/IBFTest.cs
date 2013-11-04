@@ -27,9 +27,9 @@ namespace AsyncTest
             {
                 var str = string.Format("Test {0}", i);
                 var ba = System.Text.Encoding.UTF8.GetBytes(str);
-                //Assert.IsFalse(filter.Contains(ba, 0, ba.Length));
+                Assert.IsFalse(filter.Contains(i, ba, 0, ba.Length));
                 filter.Add(i, ba, 0, ba.Length);
-                //Assert.IsTrue(filter.Contains(ba, 0, ba.Length));
+                Assert.IsTrue(filter.Contains(i, ba, 0, ba.Length));
             }
         }
     }
