@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using ASync;
+using System.Linq;
 
 namespace AsyncTest
 {
@@ -10,7 +11,7 @@ namespace AsyncTest
     public class IBFTest
     {
         [TestMethod]
-        public void TestMethod1()
+        public void TestContains()
         {
             var hFuncs = new List<HashAlgorithm>
             {
@@ -31,6 +32,51 @@ namespace AsyncTest
                 filter.Add(i, ba, 0, ba.Length);
                 Assert.IsTrue(filter.Contains(i, ba, 0, ba.Length));
             }
+        }
+
+        [TestMethod]
+        public void TestDecode()
+        {
+            var hFuncs = new List<HashAlgorithm>
+            {
+                new MurmurHash3_x86_32() {Seed = 0},
+                new MurmurHash3_x86_32() {Seed = 1},
+                new MurmurHash3_x86_32() {Seed = 2},
+                new MurmurHash3_x86_32() {Seed = 3},
+                new MurmurHash3_x86_32() {Seed = 4}
+            };
+
+            var l1 = new List<int>(Enumerable.Range(1, 1000));
+            var l2 = new List<int>(Enumerable.Range(1, 1010));
+
+            var ibf1 = new IBF(30, hFuncs);
+            var ibf2 = new IBF(30, hFuncs);
+
+            foreach (var i in l1)
+            {
+                var bArr = BitConverter.GetBytes(i);
+                ibf1.Add(i, bArr);
+            }
+            foreach (var i in l2)
+            {
+                var bArr = BitConverter.GetBytes(i);
+                ibf2.Add(i, bArr);
+            }
+
+            var sub = ibf1.Substract(ibf2);
+
+            var l1ml2 = new List<int>();
+            var l2ml1 = new List<int>();
+            var ret = sub.Decode(l1ml2, l2ml1);
+
+            var expected = l2.Except(l1).ToList();
+            expected.Sort();
+            var actual = l2ml1;
+            actual.Sort();
+
+            CollectionAssert.AreEqual(expected, actual);
+
+            var a = 0;
         }
     }
 }
