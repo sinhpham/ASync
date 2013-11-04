@@ -174,6 +174,86 @@ namespace ASync
             }
         }
 
+        public static void ClientPatchAndGenIBFFile<TKey, TValue>(Dictionary<TKey, TValue> clientDic, string patch1File, string ibfFile)
+        {
+            var d0 = 0;
+            var patchDic = new Dictionary<TKey, TValue>();
+            using (var file = File.OpenRead(patch1File))
+            {
+                var t = Serializer.Deserialize<Tuple<int, Dictionary<TKey, TValue>>>(file);
+                d0 = t.Item1;
+                patchDic = t.Item2;
+            }
+            // Apply patch 1.
+            foreach (var item in patchDic)
+            {
+                clientDic[item.Key] = item.Value;
+            }
+
+            // Phase 2: using invertible bloom filter
+            var ibf = new IBF(4 * d0, BloomFilter.DefaultHashFuncs());
+            var hFunc = new MurmurHash3_x86_32();
+            foreach (var item in clientDic)
+            {
+                var block = item.Key + "-" + item.Value;
+                var bBlock = Helper.GetBytes(block);
+
+                var id = BitConverter.ToInt32(hFunc.ComputeHash(bBlock), 0);
+
+                ibf.Add(id, bBlock);
+            }
+
+            using (var file = File.Create(ibfFile))
+            {
+                Serializer.Serialize(file, ibf);
+            }
+        }
+
+        public static void ServerGenPatch2FromIBF<TKey, TValue>(Dictionary<TKey, TValue> serverDic, string clientIBFFile, string patch2File)
+        {
+            IBF clientIBF;
+            using (var file = File.OpenRead(clientIBFFile))
+            {
+                clientIBF = Serializer.Deserialize<IBF>(file);
+            }
+
+            clientIBF.SetHashFunctions(BloomFilter.DefaultHashFuncs());
+            var hFunc = new MurmurHash3_x86_32();
+            var serverIBF = new IBF(clientIBF.Size, BloomFilter.DefaultHashFuncs());
+            var idToKey = new Dictionary<int, TKey>();
+
+            foreach (var item in serverDic)
+            {
+                var block = item.Key + "-" + item.Value;
+                var bBlock = Helper.GetBytes(block);
+
+                var id = BitConverter.ToInt32(hFunc.ComputeHash(bBlock), 0);
+
+                serverIBF.Add(id, bBlock);
+                idToKey.Add(id, item.Key);
+            }
+
+            var sIBF = clientIBF.Substract(serverIBF);
+            var idSmC = new List<int>();
+            var idCmS = new List<int>();
+            if (!sIBF.Decode(idCmS, idSmC))
+            {
+                throw new Exception("Decoding ibf failed");
+            }
+
+            var patchDic = new Dictionary<TKey, TValue>();
+            foreach (var hValue in idSmC)
+            {
+                var key = idToKey[hValue];
+                patchDic[key] = serverDic[key];
+            }
+
+            using (var file = File.Create(patch2File))
+            {
+                Serializer.Serialize(file, patchDic);
+            }
+        }
+
         public static void ClientPatch<TKey, TValue>(Dictionary<TKey, TValue> clientDic, string patch2File)
         {
             var patchDic = new Dictionary<TKey, TValue>();

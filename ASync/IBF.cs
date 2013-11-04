@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProtoBuf;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -7,8 +8,14 @@ using System.Threading.Tasks;
 
 namespace ASync
 {
+    [ProtoContract]
     public class IBF
     {
+        public IBF()
+        {
+
+        }
+
         public IBF(int size, ICollection<HashAlgorithm> hashFunctions)
         {
             _hashSum = new int[size];
@@ -16,7 +23,6 @@ namespace ASync
             _count = new int[size];
 
             _hFuncs = hashFunctions;
-
             _hcFunc = new MurmurHash3_x86_32()
             {
                 Seed = 123456789
@@ -25,11 +31,14 @@ namespace ASync
 
         HashAlgorithm _hcFunc;
         ICollection<HashAlgorithm> _hFuncs;
+        [ProtoMember(1)]
         int[] _hashSum;
+        [ProtoMember(2)]
         int[] _idSum;
+        [ProtoMember(3)]
         int[] _count;
 
-        int Size
+        public int Size
         {
             get
             {
@@ -37,34 +46,43 @@ namespace ASync
             }
         }
 
-        public void Add(int id, byte[] buffer)
+        public void SetHashFunctions(ICollection<HashAlgorithm> hashFunctions)
         {
-            Add(id, buffer, 0, buffer.Length);
+            _hFuncs = hashFunctions;
+            _hcFunc = new MurmurHash3_x86_32()
+            {
+                Seed = 123456789
+            };
         }
 
-        public void Add(int id, byte[] buffer, int offset, int count)
+        public void Add(int id, byte[] data)
+        {
+            Add(id, data, 0, data.Length);
+        }
+
+        public void Add(int id, byte[] data, int offset, int count)
         {
             foreach (var h in _hFuncs)
             {
-                var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(buffer, offset, count), 0) % Size);
+                var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(data, offset, count), 0) % Size);
 
-                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(buffer, offset, count), 0);
+                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(data, offset, count), 0);
                 _count[idx]++;
                 _idSum[idx] ^= id;
                 _hashSum[idx] ^= hVal;
             }
         }
 
-        public bool Contains(int id, byte[] buffer)
+        public bool Contains(int id, byte[] data)
         {
-            return Contains(id, buffer, 0, buffer.Length);
+            return Contains(id, data, 0, data.Length);
         }
 
-        public bool Contains(int id, byte[] buffer, int offset, int count)
+        public bool Contains(int id, byte[] data, int offset, int count)
         {
             foreach (var h in _hFuncs)
             {
-                var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(buffer, offset, count), 0) % Size);
+                var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(data, offset, count), 0) % Size);
                 if (_count[idx] == 0)
                 {
                     return false;
@@ -73,18 +91,18 @@ namespace ASync
             return true;
         }
 
-        public void Remove(int id, byte[] buffer)
+        public void Remove(int id, byte[] data)
         {
-            Remove(id, buffer, 0, buffer.Length);
+            Remove(id, data, 0, data.Length);
         }
 
-        public void Remove(int id, byte[] buffer, int offset, int count)
+        public void Remove(int id, byte[] data, int offset, int count)
         {
             foreach (var h in _hFuncs)
             {
-                var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(buffer, offset, count), 0) % Size);
+                var idx = (int)(BitConverter.ToUInt32(h.ComputeHash(data, offset, count), 0) % Size);
 
-                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(buffer, offset, count), 0);
+                var hVal = BitConverter.ToInt32(_hcFunc.ComputeHash(data, offset, count), 0);
                 _count[idx]--;
                 _idSum[idx] ^= id;
                 _hashSum[idx] ^= hVal;

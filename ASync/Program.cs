@@ -114,13 +114,13 @@ namespace ASync
         static void Main(string[] args)
         {
             var clientDic = new Dictionary<string, string>();
-            for (var i = 0; i < 10000; ++i)
+            for (var i = 0; i < 1000; ++i)
             {
                 clientDic.Add(i.ToString(), i.ToString());
             }
 
             var serverDic = new Dictionary<string, string>();
-            for (var i = 0; i < 15000; ++i)
+            for (var i = 0; i < 1500; ++i)
             {
                 serverDic.Add(i.ToString(), (i).ToString());
             }
@@ -143,14 +143,24 @@ namespace ASync
             //KeyValSyncNaive.ServerGenPatchFile(serverDic, chfn, pfn);
             //KeyValSyncNaive.ClientPatch(clientDic, pfn);
 
-            var bffile = "bfsr-bf.dat";
-            var p1file = "bfsr-p1.dat";
-            var cpfile = "bfsr-cp.dat";
-            var p2file = "bfsr-p2.dat";
+            //var bffile = "bfsr-bf.dat";
+            //var p1file = "bfsr-p1.dat";
+            //var cpfile = "bfsr-cp.dat";
+            //var p2file = "bfsr-p2.dat";
+            //KeyValSync.ClientGenBfFile(clientDic, bffile);
+            //KeyValSync.ServerGenPatch1File(serverDic, bffile, p1file);
+            //KeyValSync.ClientPatchAndGenCPFile(clientDic, p1file, cpfile);
+            //KeyValSync.ServerGenPatch2(serverDic, cpfile, p2file);
+            //KeyValSync.ClientPatch(clientDic, p2file);
+
+            var bffile = "bfibf-bf.dat";
+            var p1file = "bfibf-p1.dat";
+            var ibfFile = "bfibf-ibf.dat";
+            var p2file = "bfibf-p2.dat";
             KeyValSync.ClientGenBfFile(clientDic, bffile);
             KeyValSync.ServerGenPatch1File(serverDic, bffile, p1file);
-            KeyValSync.ClientPatchAndGenCPFile(clientDic, p1file, cpfile);
-            KeyValSync.ServerGenPatch2(serverDic, cpfile, p2file);
+            KeyValSync.ClientPatchAndGenIBFFile(clientDic, p1file, ibfFile);
+            KeyValSync.ServerGenPatch2FromIBF(serverDic, ibfFile, p2file);
             KeyValSync.ClientPatch(clientDic, p2file);
 
             //KeyValSync.SyncDic(clientDic, serverDic);

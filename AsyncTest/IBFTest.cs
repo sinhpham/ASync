@@ -75,8 +75,6 @@ namespace AsyncTest
             actual.Sort();
 
             CollectionAssert.AreEqual(expected, actual);
-
-            var a = 0;
         }
     }
 }
