@@ -59,7 +59,7 @@ namespace AsyncTest
                 ibf2.Add(i);
             }
 
-            var sub = ibf1.Substract(ibf2);
+            var sub = ibf1 - ibf2;
 
             var l1ml2 = new List<int>();
             var l2ml1 = new List<int>();

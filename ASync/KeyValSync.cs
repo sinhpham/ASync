@@ -191,7 +191,7 @@ namespace ASync
             }
 
             // Phase 2: using invertible bloom filter
-            var ibf = new IBF(4 * d0, BloomFilter.DefaultHashFuncs());
+            var ibf = new IBF(2 * d0, BloomFilter.DefaultHashFuncs(3));
             var hFunc = new MurmurHash3_x86_32();
             foreach (var item in clientDic)
             {
@@ -217,9 +217,9 @@ namespace ASync
                 clientIBF = Serializer.Deserialize<IBF>(file);
             }
 
-            clientIBF.SetHashFunctions(BloomFilter.DefaultHashFuncs());
+            clientIBF.SetHashFunctions(BloomFilter.DefaultHashFuncs(3));
             var hFunc = new MurmurHash3_x86_32();
-            var serverIBF = new IBF(clientIBF.Size, BloomFilter.DefaultHashFuncs());
+            var serverIBF = new IBF(clientIBF.Size, BloomFilter.DefaultHashFuncs(3));
             var idToKey = new Dictionary<int, TKey>();
 
             foreach (var item in serverDic)
@@ -233,7 +233,7 @@ namespace ASync
                 idToKey.Add(id, item.Key);
             }
 
-            var sIBF = clientIBF.Substract(serverIBF);
+            var sIBF = clientIBF - serverIBF;
             var idSmC = new List<int>();
             var idCmS = new List<int>();
             if (!sIBF.Decode(idCmS, idSmC))

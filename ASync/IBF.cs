@@ -29,6 +29,8 @@ namespace ASync
             };
         }
 
+        // Hc function to verify if cell is really "pure"
+        // Different than the hash used to calculate the cell indices.
         HashAlgorithm _hcFunc;
         ICollection<HashAlgorithm> _hFuncs;
         [ProtoMember(1)]
@@ -93,19 +95,19 @@ namespace ASync
             }
         }
 
-        public IBF Substract(IBF x)
+        public static IBF operator -(IBF curr, IBF x)
         {
-            if (Size != x.Size)
+            if (curr.Size != x.Size)
             {
                 throw new InvalidOperationException();
             }
-            var ret = new IBF(Size, _hFuncs);
+            var ret = new IBF(curr.Size, curr._hFuncs);
 
-            for (var i = 0; i < Size; ++i)
+            for (var i = 0; i < curr.Size; ++i)
             {
-                ret._hashSum[i] = _hashSum[i] ^ x._hashSum[i];
-                ret._idSum[i] = _idSum[i] ^ x._idSum[i];
-                ret._count[i] = _count[i] - x._count[i];
+                ret._hashSum[i] = curr._hashSum[i] ^ x._hashSum[i];
+                ret._idSum[i] = curr._idSum[i] ^ x._idSum[i];
+                ret._count[i] = curr._count[i] - x._count[i];
             }
             return ret;
         }
