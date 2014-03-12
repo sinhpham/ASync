@@ -12,7 +12,7 @@ namespace DatasetGen
     {
         static void Main(string[] args)
         {
-
+            GenDataSet(100000, 5);
         }
 
         static void GenDataSet(int baseSize, int changedPercent)
@@ -30,12 +30,12 @@ namespace DatasetGen
                 serverDic.Add(i.ToString(), (i).ToString());
             }
 
-            using (var f = File.Create("clientDic.dat"))
+            using (var f = File.Create(string.Format("{0}-clientDic.dat", baseSize)))
             {
                 Serializer.Serialize(f, clientDic);
             }
 
-            using (var f = File.Create("serverDic.dat"))
+            using (var f = File.Create(string.Format("{0}-{1}changed-serverDic.dat", sSize, changedPercent)))
             {
                 Serializer.Serialize(f, serverDic);
             }
