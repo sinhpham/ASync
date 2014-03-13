@@ -12,7 +12,7 @@ namespace DatasetGen
     {
         static void Main(string[] args)
         {
-            GenDataSet(100000, 5);
+            GenDataSet(1000000, 50);
         }
 
         static void GenDataSet(int baseSize, int changedPercent)

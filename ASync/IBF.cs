@@ -19,7 +19,7 @@ namespace ASync
         public IBF(int size, ICollection<HashAlgorithm> hashFunctions)
         {
             _hashSum = new int[size];
-            _idSum = new int[size];
+            _idSum = new long[size];
             _count = new int[size];
 
             _hFuncs = hashFunctions;
@@ -36,7 +36,7 @@ namespace ASync
         [ProtoMember(1)]
         int[] _hashSum;
         [ProtoMember(2)]
-        int[] _idSum;
+        long[] _idSum;
         [ProtoMember(3)]
         int[] _count;
 
@@ -57,7 +57,7 @@ namespace ASync
             };
         }
 
-        public void Add(int id)
+        public void Add(long id)
         {
             foreach (var h in _hFuncs)
             {
@@ -70,7 +70,7 @@ namespace ASync
             }
         }
 
-        public bool Contains(int id)
+        public bool Contains(long id)
         {
             foreach (var h in _hFuncs)
             {
@@ -83,7 +83,7 @@ namespace ASync
             return true;
         }
 
-        public void Remove(int id)
+        public void Remove(long id)
         {
             foreach (var h in _hFuncs)
             {
@@ -112,7 +112,7 @@ namespace ASync
             return ret;
         }
 
-        public bool Decode(List<int> amb, List<int> bma)
+        public bool Decode(List<long> amb, List<long> bma)
         {
             var pureListIdx = new Queue<int>();
             for (var i = 0; i < Size; ++i)
@@ -173,12 +173,12 @@ namespace ASync
             return ((_count[idx] == 1 || _count[idx] == -1) && hVal == _hashSum[idx]);
         }
 
-        int CalcIdx(int id, HashAlgorithm hFunc)
+        int CalcIdx(long id, HashAlgorithm hFunc)
         {
             return (int)(BitConverter.ToUInt32(hFunc.ComputeHash(BitConverter.GetBytes(id)), 0) % Size);
         }
 
-        int CalcHcVal(int id)
+        int CalcHcVal(long id)
         {
             return BitConverter.ToInt32(_hcFunc.ComputeHash(BitConverter.GetBytes(id)), 0);
         }

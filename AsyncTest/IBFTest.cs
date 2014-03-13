@@ -43,9 +43,17 @@ namespace AsyncTest
                 new MurmurHash3_x86_32() {Seed = 3},
                 new MurmurHash3_x86_32() {Seed = 4}
             };
-
-            var l1 = new List<int>(Enumerable.Range(1, 1000));
-            var l2 = new List<int>(Enumerable.Range(1, 1010));
+            
+            var l1 = new List<long>();
+            var l2 = new List<long>();
+            for (var i = 0; i < 1000; ++i)
+            {
+                l1.Add((long)i);
+            }
+            for (var i = 0; i < 1010; ++i)
+            {
+                l2.Add((long)i);
+            }
 
             var ibf1 = new IBF(30, hFuncs);
             var ibf2 = new IBF(30, hFuncs);
@@ -61,8 +69,8 @@ namespace AsyncTest
 
             var sub = ibf1 - ibf2;
 
-            var l1ml2 = new List<int>();
-            var l2ml1 = new List<int>();
+            var l1ml2 = new List<long>();
+            var l2ml1 = new List<long>();
             var ret = sub.Decode(l1ml2, l2ml1);
 
             var expected = l2.Except(l1).ToList();
@@ -86,7 +94,11 @@ namespace AsyncTest
                 new MurmurHash3_x86_32() {Seed = 4}
             };
 
-            var intList = new List<int>(Enumerable.Range(1, 1000000));
+            var intList = new List<long>();
+            for (var i = 0; i < 1000000; ++i)
+            {
+                intList.Add((long)i);
+            }
 
             var ibf = new IBF(3 * intList.Count, hFuncs);
 
@@ -95,8 +107,8 @@ namespace AsyncTest
                 ibf.Add(i);
             }
 
-            var l1ml2 = new List<int>();
-            var l2ml1 = new List<int>();
+            var l1ml2 = new List<long>();
+            var l2ml1 = new List<long>();
             var ret = ibf.Decode(l1ml2, l2ml1);
 
             var expected = intList;
@@ -105,7 +117,7 @@ namespace AsyncTest
             actual.Sort();
 
             Assert.IsTrue(ret);
-            CollectionAssert.AreEqual(expected, actual);
+            CollectionAssert.AreEqual(expected.Cast<long>().ToList(), actual);
         }
     }
 }

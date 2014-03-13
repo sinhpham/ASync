@@ -192,13 +192,13 @@ namespace ASync
 
             // Phase 2: using invertible bloom filter
             var ibf = new IBF(2 * d0, BloomFilter.DefaultHashFuncs(3));
-            var hFunc = new MurmurHash3_x86_32();
+            var hFunc = new MurmurHash3_x64_128();
             foreach (var item in clientDic)
             {
                 var block = item.Key + "-" + item.Value;
                 var bBlock = Helper.GetBytes(block);
 
-                var id = BitConverter.ToInt32(hFunc.ComputeHash(bBlock), 0);
+                var id = BitConverter.ToInt64(hFunc.ComputeHash(bBlock), 0);
 
                 ibf.Add(id);
             }
@@ -218,24 +218,25 @@ namespace ASync
             }
 
             clientIBF.SetHashFunctions(BloomFilter.DefaultHashFuncs(3));
-            var hFunc = new MurmurHash3_x86_32();
+
+            var hFunc = new MurmurHash3_x64_128();
             var serverIBF = new IBF(clientIBF.Size, BloomFilter.DefaultHashFuncs(3));
-            var idToKey = new Dictionary<int, TKey>();
+            var idToKey = new Dictionary<long, TKey>();
 
             foreach (var item in serverDic)
             {
                 var block = item.Key + "-" + item.Value;
                 var bBlock = Helper.GetBytes(block);
 
-                var id = BitConverter.ToInt32(hFunc.ComputeHash(bBlock), 0);
+                var id = BitConverter.ToInt64(hFunc.ComputeHash(bBlock), 0);
 
                 serverIBF.Add(id);
                 idToKey.Add(id, item.Key);
             }
 
             var sIBF = clientIBF - serverIBF;
-            var idSmC = new List<int>();
-            var idCmS = new List<int>();
+            var idSmC = new List<long>();
+            var idCmS = new List<long>();
             if (!sIBF.Decode(idCmS, idSmC))
             {
                 throw new Exception("Decoding ibf failed");
