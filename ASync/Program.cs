@@ -113,45 +113,23 @@ namespace ASync
     {
         static void Main(string[] args)
         {
+            Sync("testdata/100000-clientDic.dat", "testdata/105000-5changed-serverDic.dat");
+        }
+
+        static void Sync(string clientFile, string serverFile)
+        {
             var clientDic = new Dictionary<string, string>();
-            for (var i = 0; i < 100000; ++i)
-            {
-                clientDic.Add(i.ToString(), i.ToString());
-            }
-
             var serverDic = new Dictionary<string, string>();
-            for (var i = 0; i < 105000; ++i)
+
+            using (var f = File.OpenRead(clientFile))
             {
-                serverDic.Add(i.ToString(), (i).ToString());
+                clientDic = Serializer.Deserialize<Dictionary<string, string>>(f);
             }
 
-
-            using (var f = File.Create("clientDic.dat"))
+            using (var f = File.OpenRead(serverFile))
             {
-                Serializer.Serialize(f, clientDic);
+                serverDic = Serializer.Deserialize<Dictionary<string, string>>(f);
             }
-
-            using (var f = File.Create("serverDic.dat"))
-            {
-                Serializer.Serialize(f, serverDic);
-            }
-
-            //var chfn = "clienthashvalues.dat";
-            //var pfn = "patch.dat";
-
-            //KeyValSyncNaive.ClientGenHashFile(clientDic, chfn);
-            //KeyValSyncNaive.ServerGenPatchFile(serverDic, chfn, pfn);
-            //KeyValSyncNaive.ClientPatch(clientDic, pfn);
-
-            //var bffile = "bfsr-bf.dat";
-            //var p1file = "bfsr-p1.dat";
-            //var cpfile = "bfsr-cp.dat";
-            //var p2file = "bfsr-p2.dat";
-            //KeyValSync.ClientGenBfFile(clientDic, bffile);
-            //KeyValSync.ServerGenPatch1File(serverDic, bffile, p1file);
-            //KeyValSync.ClientPatchAndGenCPFile(clientDic, p1file, cpfile);
-            //KeyValSync.ServerGenPatch2(serverDic, cpfile, p2file);
-            //KeyValSync.ClientPatch(clientDic, p2file);
 
             var bffile = "bfibf-bf.dat";
             var p1file = "bfibf-p1.dat";
@@ -163,13 +141,11 @@ namespace ASync
             KeyValSync.ServerGenPatch2FromIBF(serverDic, ibfFile, p2file);
             KeyValSync.ClientPatch(clientDic, p2file);
 
-            //KeyValSync.SyncDic(clientDic, serverDic);
 
             if (!KeyValSync.AreTheSame(clientDic, serverDic))
             {
                 throw new InvalidDataException();
             }
-
         }
     }
 }
