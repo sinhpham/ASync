@@ -113,7 +113,7 @@ namespace ASync
     {
         static void Main(string[] args)
         {
-            Sync("testdata/2000000-clientDic.dat", "testdata/3000000-50changed-serverDic.dat");
+            Sync("testdata/10000000-clientDic.dat", "testdata/15000000-50changed-serverDic.dat");
         }
 
         static void Sync(string clientFile, string serverFile)
