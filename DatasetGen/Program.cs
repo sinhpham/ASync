@@ -13,7 +13,9 @@ namespace DatasetGen
     {
         static void Main(string[] args)
         {
-            GenDataSet(50000, 20);
+            // Data: 5M, 0.5M, 0.05M items
+            // Change: 50%, 20%, 4%
+            GenDataSet(50000, 4);
         }
 
         static void GenDataSet(int baseSize, int changedPercent)
