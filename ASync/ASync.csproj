@@ -66,6 +66,7 @@
     <Compile Include="MurmurHash3_x86_32.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StrataEstimator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
