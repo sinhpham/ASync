@@ -8,7 +8,7 @@ using System.Text;
 
 namespace ASyncLib
 {
-    class KeyValSync
+    public class KeyValSync
     {
         // Only use the last 24 bits
         const int HashBitMask = 0xFFFFFFF;
