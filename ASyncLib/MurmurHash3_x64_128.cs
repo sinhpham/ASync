@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ASyncLib
 {
-    class MurmurHash3_x64_128 : IHashFunc
+    public class MurmurHash3_x64_128 : IHashFunc
     {
 
         public UInt64 Seed { get; set; }
@@ -138,12 +138,13 @@ namespace ASyncLib
 
         public byte[] ComputeHash(byte[] buffer)
         {
-            throw new NotImplementedException();
+            return ComputeHash(buffer, 0, buffer.Length);
         }
 
         public byte[] ComputeHash(byte[] buffer, int offset, int count)
         {
-            throw new NotImplementedException();
+            HashCore(buffer, 0, count);
+            return HashFinal();
         }
     }
 }

@@ -95,7 +95,7 @@ namespace AsyncTest
             };
 
             var intList = new List<long>();
-            for (var i = 0; i < 1000000; ++i)
+            for (var i = 0; i < 100000; ++i)
             {
                 intList.Add((long)i);
             }

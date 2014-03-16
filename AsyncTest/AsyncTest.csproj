@@ -25,6 +25,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,7 +35,16 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputPath>bin\x64\Release\</OutputPath>
+  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -58,8 +68,13 @@
     <Compile Include="FilePartitionHashTest.cs" />
     <Compile Include="DataChunkTest.cs" />
     <Compile Include="IBFTest.cs" />
+    <Compile Include="MurmurHashTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ASyncLib\ASyncLib.csproj">
+      <Project>{b7d2480c-e162-426f-b276-0b1b6dbcef08}</Project>
+      <Name>ASyncLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ASync\ASync.csproj">
       <Project>{b4b0be0c-cd94-4aad-83f4-0af0c0251f90}</Project>
       <Name>ASync</Name>
