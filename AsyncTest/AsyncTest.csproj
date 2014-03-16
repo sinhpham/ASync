@@ -75,10 +75,6 @@
       <Project>{b7d2480c-e162-426f-b276-0b1b6dbcef08}</Project>
       <Name>ASyncLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\ASync\ASync.csproj">
-      <Project>{b4b0be0c-cd94-4aad-83f4-0af0c0251f90}</Project>
-      <Name>ASync</Name>
-    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

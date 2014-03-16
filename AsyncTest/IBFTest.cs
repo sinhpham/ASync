@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Security.Cryptography;
-using ASync;
+using ASyncLib;
 using System.Linq;
 
 namespace AsyncTest
@@ -13,7 +13,7 @@ namespace AsyncTest
         [TestMethod]
         public void TestContains()
         {
-            var hFuncs = new List<HashAlgorithm>
+            var hFuncs = new List<IHashFunc>
             {
                 new MurmurHash3_x86_32() {Seed = 0},
                 new MurmurHash3_x86_32() {Seed = 1},
@@ -35,7 +35,7 @@ namespace AsyncTest
         [TestMethod]
         public void TestDecode()
         {
-            var hFuncs = new List<HashAlgorithm>
+            var hFuncs = new List<IHashFunc>
             {
                 new MurmurHash3_x86_32() {Seed = 0},
                 new MurmurHash3_x86_32() {Seed = 1},
@@ -85,7 +85,7 @@ namespace AsyncTest
         [TestMethod]
         public void TestDecode2()
         {
-            var hFuncs = new List<HashAlgorithm>
+            var hFuncs = new List<IHashFunc>
             {
                 new MurmurHash3_x86_32() {Seed = 0},
                 new MurmurHash3_x86_32() {Seed = 1},

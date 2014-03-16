@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ASync;
+using ASyncLib;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 
@@ -12,7 +12,7 @@ namespace AsyncTest
         [TestMethod]
         public void BFTestCorrect()
         {
-            var hFuncs = new List<HashAlgorithm>
+            var hFuncs = new List<IHashFunc>
             {
                 new MurmurHash3_x86_32() {Seed = 0},
                 new MurmurHash3_x86_32() {Seed = 1},
