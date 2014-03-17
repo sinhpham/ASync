@@ -10,9 +10,6 @@ namespace ASyncLib
 {
     public class KeyValSync
     {
-        // Only use the last 24 bits
-        const int HashBitMask = 0xFFFFFFF;
-
         public static void ClientGenBfFile<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Stream clientBFFile)
         {
             // Using 8 bits per item.
@@ -85,17 +82,13 @@ namespace ASyncLib
 
             // Phase 2: using invertible bloom filter
             var ibf = new IBF(2 * d0, BloomFilter.DefaultHashFuncs(3));
-            var hFunc = new MurmurHash3_x64_128();
+            //var hFunc = new MurmurHash3_x64_128();
             foreach (var item in clientDic)
             {
-                var block = item.Key + "-" + item.Value;
-                var bBlock = Helper.GetBytes(block);
-
-                var id = BitConverter.ToInt64(hFunc.ComputeHash(bBlock), 0);
+                var id = KeyValToId(item);
 
                 ibf.Add(id);
             }
-
 
             Serializer.Serialize(ibfFile, ibf);
         }
@@ -108,16 +101,12 @@ namespace ASyncLib
 
             clientIBF.SetHashFunctions(BloomFilter.DefaultHashFuncs(3));
 
-            var hFunc = new MurmurHash3_x64_128();
             var serverIBF = new IBF(clientIBF.Size, BloomFilter.DefaultHashFuncs(3));
             var idToKey = new Dictionary<long, TKey>();
 
             foreach (var item in serverDic)
             {
-                var block = item.Key + "-" + item.Value;
-                var bBlock = Helper.GetBytes(block);
-
-                var id = BitConverter.ToInt64(hFunc.ComputeHash(bBlock), 0);
+                var id = KeyValToId(item);
 
                 serverIBF.Add(id);
                 idToKey.Add(id, item.Key);
@@ -172,6 +161,18 @@ namespace ASyncLib
             }
 
             return true;
+        }
+
+        public static long KeyValToId<TKey, TValue>(KeyValuePair<TKey, TValue> item)
+        {
+            var hFunc = new MurmurHash3_x64_128();
+
+            var block = item.Key + "-" + item.Value;
+            var bBlock = Helper.GetBytes(block);
+
+            var id = BitConverter.ToInt64(hFunc.ComputeHash(bBlock), 0);
+
+            return id;
         }
     }
 }
