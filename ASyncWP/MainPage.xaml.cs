@@ -8,6 +8,8 @@ using System.Windows.Navigation;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using ASyncWP.Resources;
+using System.IO;
+using ASyncLib;
 
 namespace ASyncWP
 {
@@ -17,25 +19,39 @@ namespace ASyncWP
         public MainPage()
         {
             InitializeComponent();
-
-            // Sample code to localize the ApplicationBar
-            //BuildLocalizedApplicationBar();
         }
 
-        // Sample code for building a localized ApplicationBar
-        //private void BuildLocalizedApplicationBar()
-        //{
-        //    // Set the page's ApplicationBar to a new instance of ApplicationBar.
-        //    ApplicationBar = new ApplicationBar();
+        private void RunClicked(object sender, RoutedEventArgs e)
+        {
+            var _clientDic = new Dictionary<string, string>();
+            var _serverDic = new Dictionary<string, string>();
+            var _bffile = new MemoryStream();
+            var _p1file = new MemoryStream();
+            var _ibffile = new MemoryStream();
+            var _p2file = new MemoryStream();
 
-        //    // Create a new button and set the text value to the localized string from AppResources.
-        //    ApplicationBarIconButton appBarButton = new ApplicationBarIconButton(new Uri("/Assets/AppBar/appbar.add.rest.png", UriKind.Relative));
-        //    appBarButton.Text = AppResources.AppBarButtonText;
-        //    ApplicationBar.Buttons.Add(appBarButton);
+            for (var i = 0; i < 200; ++i)
+            {
+                _clientDic.Add(i.ToString(), i.ToString());
+            }
+            for (var i = 0; i < 250; ++i)
+            {
+                _serverDic.Add(i.ToString(), i.ToString());
+            }
 
-        //    // Create a new menu item with the localized string from AppResources.
-        //    ApplicationBarMenuItem appBarMenuItem = new ApplicationBarMenuItem(AppResources.AppBarMenuItemText);
-        //    ApplicationBar.MenuItems.Add(appBarMenuItem);
-        //}
+            KeyValSync.ClientGenBfFile(_clientDic, _bffile);
+            _bffile.Position = 0;
+            KeyValSync.ServerGenPatch1File(_serverDic, _bffile, _p1file);
+            _p1file.Position = 0;
+            KeyValSync.ClientPatchAndGenIBFFile(_clientDic, _p1file, _ibffile);
+            _ibffile.Position = 0;
+            KeyValSync.ServerGenPatch2FromIBF(_serverDic, _ibffile, _p2file);
+            _p2file.Position = 0;
+            KeyValSync.ClientPatch(_clientDic, _p2file);
+
+            var ans = KeyValSync.AreTheSame(_clientDic, _serverDic);
+
+            var a = 0;
+        }
     }
 }
