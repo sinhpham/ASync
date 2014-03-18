@@ -26,28 +26,47 @@ namespace ASyncWP
             InitializeComponent();
         }
 
-        private async Task<System.IO.Stream> Upload(string url, Stream fileStream)
+        private async void DownloadFile(string url)
         {
-            fileStream.Position = 0;
-            var fileStreamContent = new StreamContent(fileStream);
-            using (var client = new HttpClient())
+            var wc = new WebClient();
+            //wc.OpenReadTaskAsync()
+            using (var c = new HttpClient())
             {
-                var b = "--customBoundary";
-                using (var formData = new MultipartFormDataContent(b))
+                var stream = await c.GetStreamAsync(url);
+                using (var f = IsolatedStorageFile.GetUserStoreForApplication().CreateFile("downloaded.data"))
                 {
-                    // Work around hfs - remove quotes from boundary
-                    formData.Headers.Remove("Content-Type");
-                    formData.Headers.TryAddWithoutValidation("Content-Type", "multipart/form-data; boundary=" + b);
+                    await stream.CopyToAsync(f);
+                    var a = 0;
+                }
+            }
+        }
 
-                    formData.Add(fileStreamContent, "file", "abc");
-
-                    var response = await client.PostAsync(url, formData);
-                    if (!response.IsSuccessStatusCode)
+        private async Task<System.IO.Stream> Upload(string url, string filePath)
+        {
+            using (var fStream = File.OpenRead(filePath))
+            {
+                using (var client = new HttpClient())
+                {
+                    using (var fileStreamContent = new StreamContent(fStream))
                     {
-                        return null;
+                        var b = "--customBoundary";
+                        using (var formData = new MultipartFormDataContent(b))
+                        {
+                            // Work around hfs - remove quotes from boundary
+                            formData.Headers.Remove("Content-Type");
+                            formData.Headers.TryAddWithoutValidation("Content-Type", "multipart/form-data; boundary=" + b);
+
+                            formData.Add(fileStreamContent, "file", Path.GetFileName(filePath));
+
+                            var response = await client.PostAsync(url, formData);
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                return null;
+                            }
+                            var res = await response.Content.ReadAsStreamAsync();
+                            return res;
+                        }
                     }
-                    var res = await response.Content.ReadAsStreamAsync();
-                    return res;
                 }
             }
         }
@@ -56,10 +75,8 @@ namespace ASyncWP
         {
             var clientDic = new Dictionary<string, string>();
 
-            var f = File.OpenRead("Data/50000-clientDic.dat");
-                //clientDic = Serializer.Deserialize<Dictionary<string, string>>(f);
-            Upload("http://10.81.4.120:8080/aaa/", f);
-            var b = 0;
+            //Upload("http://10.81.4.120:8080/aaa/", "Data/50000-clientDic.dat");
+            DownloadFile("http://10.81.4.120:8080/aaa/50000-clientDic.dat");
 
             var _clientDic = new Dictionary<string, string>();
             var _serverDic = new Dictionary<string, string>();
