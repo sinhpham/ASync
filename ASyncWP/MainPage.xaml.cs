@@ -10,6 +10,11 @@ using Microsoft.Phone.Shell;
 using ASyncWP.Resources;
 using System.IO;
 using ASyncLib;
+using System.Net.Http;
+using System.IO.IsolatedStorage;
+using System.Text;
+using ProtoBuf;
+using System.Threading.Tasks;
 
 namespace ASyncWP
 {
@@ -21,8 +26,41 @@ namespace ASyncWP
             InitializeComponent();
         }
 
+        private async Task<System.IO.Stream> Upload(string url, Stream fileStream)
+        {
+            fileStream.Position = 0;
+            var fileStreamContent = new StreamContent(fileStream);
+            using (var client = new HttpClient())
+            {
+                var b = "--customBoundary";
+                using (var formData = new MultipartFormDataContent(b))
+                {
+                    // Work around hfs - remove quotes from boundary
+                    formData.Headers.Remove("Content-Type");
+                    formData.Headers.TryAddWithoutValidation("Content-Type", "multipart/form-data; boundary=" + b);
+
+                    formData.Add(fileStreamContent, "file", "abc");
+
+                    var response = await client.PostAsync(url, formData);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return null;
+                    }
+                    var res = await response.Content.ReadAsStreamAsync();
+                    return res;
+                }
+            }
+        }
+
         private void RunClicked(object sender, RoutedEventArgs e)
         {
+            var clientDic = new Dictionary<string, string>();
+
+            var f = File.OpenRead("Data/50000-clientDic.dat");
+                //clientDic = Serializer.Deserialize<Dictionary<string, string>>(f);
+            Upload("http://10.81.4.120:8080/aaa/", f);
+            var b = 0;
+
             var _clientDic = new Dictionary<string, string>();
             var _serverDic = new Dictionary<string, string>();
             var _bffile = new MemoryStream();
