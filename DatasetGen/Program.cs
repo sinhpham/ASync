@@ -15,7 +15,7 @@ namespace DatasetGen
         {
             // Data: 5M, 0.5M, 0.05M items
             // Change: 50%, 20%, 4%
-            GenDataSet(50000, 4);
+            GenDataSet(550000, 4);
         }
 
         static void GenDataSet(int baseSize, int changedPercent)
@@ -26,7 +26,7 @@ namespace DatasetGen
             // Gen client file.
             CreateDicFile(baseSize, clientFn, 0, 0);
             // Gen server file.
-            CreateDicFile(baseSize, serverFn, changedPercent / 2, changedPercent / 2);
+            //CreateDicFile(baseSize, serverFn, changedPercent / 2, changedPercent / 2);
         }
 
         static void CreateDicFile(int size, string name, int addedPercent, int modifiedPercent)

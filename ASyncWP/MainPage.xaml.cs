@@ -28,8 +28,6 @@ namespace ASyncWP
 
         private async void DownloadFile(string url)
         {
-            var wc = new WebClient();
-            //wc.OpenReadTaskAsync()
             using (var c = new HttpClient())
             {
                 var stream = await c.GetStreamAsync(url);
@@ -47,7 +45,7 @@ namespace ASyncWP
             {
                 using (var client = new HttpClient())
                 {
-                    using (var fileStreamContent = new StreamContent(fStream))
+                    using (var fileStreamContent = new StreamContent(fStream, 4096*8))
                     {
                         var b = "--customBoundary";
                         using (var formData = new MultipartFormDataContent(b))
@@ -56,8 +54,9 @@ namespace ASyncWP
                             formData.Headers.Remove("Content-Type");
                             formData.Headers.TryAddWithoutValidation("Content-Type", "multipart/form-data; boundary=" + b);
 
+                            
                             formData.Add(fileStreamContent, "file", Path.GetFileName(filePath));
-
+                            
                             var response = await client.PostAsync(url, formData);
                             if (!response.IsSuccessStatusCode)
                             {
@@ -71,12 +70,82 @@ namespace ASyncWP
             }
         }
 
+        public static async Task<string> MyUploader(string strFileToUpload, string strUrl)
+        {
+            string strFileFormName = "file";
+            Uri oUri = new Uri(strUrl);
+            string strBoundary = "----------" + DateTime.Now.Ticks.ToString("x");
+
+            // The trailing boundary string
+            
+            byte[] boundaryBytes = Encoding.UTF8.GetBytes("\r\n--" + strBoundary + "\r\n");
+
+            // The post message header
+            StringBuilder sb = new StringBuilder();
+            sb.Append("--");
+            sb.Append(strBoundary);
+            sb.Append("\r\n");
+            sb.Append("Content-Disposition: form-data; name=\"");
+            sb.Append(strFileFormName);
+            sb.Append("\"; filename=\"");
+            sb.Append(Path.GetFileName(strFileToUpload));
+            sb.Append("\"");
+            sb.Append("\r\n");
+            sb.Append("Content-Type: ");
+            sb.Append("application/octet-stream");
+            sb.Append("\r\n");
+            sb.Append("\r\n");
+            string strPostHeader = sb.ToString();
+            byte[] postHeaderBytes = Encoding.UTF8.GetBytes(strPostHeader);
+
+            // The WebRequest
+            HttpWebRequest oWebrequest = (HttpWebRequest)WebRequest.Create(oUri);
+            oWebrequest.ContentType = "multipart/form-data; boundary=" + strBoundary;
+            oWebrequest.Method = "POST";
+
+            // This is important, otherwise the whole file will be read to memory anyway...
+            oWebrequest.AllowWriteStreamBuffering = false;
+
+            // Get a FileStream and set the final properties of the WebRequest
+            FileStream oFileStream = new FileStream(strFileToUpload, FileMode.Open, FileAccess.Read);
+            long length = postHeaderBytes.Length + oFileStream.Length + boundaryBytes.Length;
+            oWebrequest.ContentLength = length;
+            Stream oRequestStream = await oWebrequest.GetRequestStreamAsync();
+
+            // Write the post header
+            oRequestStream.Write(postHeaderBytes, 0, postHeaderBytes.Length);
+
+            // Stream the file contents in small pieces (4096 bytes, max).
+            byte[] buffer = new Byte[checked((uint)Math.Min(4096, (int)oFileStream.Length))];
+            int bytesRead = 0;
+            while ((bytesRead = oFileStream.Read(buffer, 0, buffer.Length)) != 0)
+                oRequestStream.Write(buffer, 0, bytesRead);
+            oFileStream.Close();
+
+            // Add the trailing boundary
+            oRequestStream.Write(boundaryBytes, 0, boundaryBytes.Length);
+            WebResponse oWResponse = await oWebrequest.GetResponseAsync();
+            Stream s = oWResponse.GetResponseStream();
+            StreamReader sr = new StreamReader(s);
+            String sReturnString = sr.ReadToEnd();
+
+            // Clean up
+            oFileStream.Close();
+            oRequestStream.Close();
+            s.Close();
+            sr.Close();
+
+            return sReturnString;
+        }
+
         private void RunClicked(object sender, RoutedEventArgs e)
         {
             var clientDic = new Dictionary<string, string>();
 
-            //Upload("http://10.81.4.120:8080/aaa/", "Data/50000-clientDic.dat");
-            DownloadFile("http://10.81.4.120:8080/aaa/50000-clientDic.dat");
+            var x = MyUploader("Data/50000-clientDic.dat", "http://10.81.4.120:8080/aaa/").Result;
+
+            //Upload("http://10.81.4.120:8080/aaa/", "Data/500000-clientDic.dat");
+            //DownloadFile("http://10.81.4.120:8080/aaa/50000-clientDic.dat");
 
             var _clientDic = new Dictionary<string, string>();
             var _serverDic = new Dictionary<string, string>();
