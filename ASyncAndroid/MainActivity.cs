@@ -26,7 +26,9 @@ namespace ASyncAndroid
 			
             button.Click += delegate
             {
-                button.Text = string.Format("{0} clicks!", count++);
+                DbManager.CheckDataSet(5000000, 50);
+
+                var a = 0;
             };
         }
     }
