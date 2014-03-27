@@ -7,32 +7,29 @@ namespace ASyncAndroid
 {
     public static class NetworkManager
     {
-        static async Task FtpUpload(string url, Stream fileStream)
+        public static async Task FtpUpload(string url, Stream fileStream, string fileName)
         {
             // Get the object used to communicate with the server.
-            var request = (FtpWebRequest)WebRequest.Create(url + "/" + Path.GetFileName("uploaded.dat"));
+            var request = (FtpWebRequest)WebRequest.Create(url + "/" + fileName);
             request.Method = WebRequestMethods.Ftp.UploadFile;
 
             // This example assumes the FTP site uses anonymous logon.
             request.Credentials = new NetworkCredential("asyncuser", (string)null);
+            request.ContentLength = fileStream.Length;
 
-            //using (var fileStream = File.OpenRead(filePath))
+            using (var requestStream = await request.GetRequestStreamAsync())
             {
-                //request.ContentLength = fileStream.Length;
-                using (var requestStream = await request.GetRequestStreamAsync())
-                {
-                    await fileStream.CopyToAsync(requestStream);
-                    requestStream.Close();
+                await fileStream.CopyToAsync(requestStream);
+                requestStream.Close();
 
-                    using (var response = (FtpWebResponse)(await request.GetResponseAsync()))
-                    {
-                        Console.WriteLine("Upload File Complete, status {0}", response.StatusDescription);
-                    }
+                using (var response = (FtpWebResponse)(await request.GetResponseAsync()))
+                {
+                    Console.WriteLine("Upload File Complete, status {0}", response.StatusDescription);
                 }
             }
         }
 
-        static async Task FtpDownload(string url, string filePath)
+        public static async Task FtpDownload(string url, string filePath)
         {
             // Get the object used to communicate with the server.
             var request = (FtpWebRequest)WebRequest.Create(url);
