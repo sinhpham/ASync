@@ -11,34 +11,43 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASyncWP", "ASyncWP\ASyncWP.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASyncLib", "ASyncLib\ASyncLib.csproj", "{B7D2480C-E162-426F-B276-0B1B6DBCEF08}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASyncAndroid", "ASyncAndroid\ASyncAndroid.csproj", "{1F629643-1667-4F92-B61F-2C4B1A1121CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed = Debug|Mixed
 		Release|Mixed = Release|Mixed
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Debug|Mixed.ActiveCfg = Debug|x64
-		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Debug|Mixed.Build.0 = Debug|x64
-		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Release|Mixed.ActiveCfg = Release|x64
-		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Release|Mixed.Build.0 = Release|x64
-		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Debug|Mixed.ActiveCfg = Debug|x64
-		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Debug|Mixed.Build.0 = Debug|x64
-		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Release|Mixed.ActiveCfg = Release|x64
-		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Release|Mixed.Build.0 = Release|x64
-		{BA278F24-C270-4631-A4E9-247AD2978111}.Debug|Mixed.ActiveCfg = Debug|x64
-		{BA278F24-C270-4631-A4E9-247AD2978111}.Debug|Mixed.Build.0 = Debug|x64
-		{BA278F24-C270-4631-A4E9-247AD2978111}.Release|Mixed.ActiveCfg = Release|x64
-		{BA278F24-C270-4631-A4E9-247AD2978111}.Release|Mixed.Build.0 = Release|x64
+		{1F629643-1667-4F92-B61F-2C4B1A1121CF}.Debug|Mixed.ActiveCfg = Debug|Any CPU
+		{1F629643-1667-4F92-B61F-2C4B1A1121CF}.Debug|Mixed.Build.0 = Debug|Any CPU
+		{1F629643-1667-4F92-B61F-2C4B1A1121CF}.Release|Mixed.ActiveCfg = Release|Any CPU
+		{1F629643-1667-4F92-B61F-2C4B1A1121CF}.Release|Mixed.Build.0 = Release|Any CPU
 		{8F3527B0-BCA8-4F71-ACB9-053992DAAF06}.Debug|Mixed.ActiveCfg = Debug|Any CPU
 		{8F3527B0-BCA8-4F71-ACB9-053992DAAF06}.Debug|Mixed.Build.0 = Debug|Any CPU
 		{8F3527B0-BCA8-4F71-ACB9-053992DAAF06}.Debug|Mixed.Deploy.0 = Debug|Any CPU
 		{8F3527B0-BCA8-4F71-ACB9-053992DAAF06}.Release|Mixed.ActiveCfg = Release|ARM
 		{8F3527B0-BCA8-4F71-ACB9-053992DAAF06}.Release|Mixed.Build.0 = Release|ARM
 		{8F3527B0-BCA8-4F71-ACB9-053992DAAF06}.Release|Mixed.Deploy.0 = Release|ARM
+		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Debug|Mixed.ActiveCfg = Debug|x64
+		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Debug|Mixed.Build.0 = Debug|x64
+		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Release|Mixed.ActiveCfg = Release|x64
+		{B4B0BE0C-CD94-4AAD-83F4-0AF0C0251F90}.Release|Mixed.Build.0 = Release|x64
 		{B7D2480C-E162-426F-B276-0B1B6DBCEF08}.Debug|Mixed.ActiveCfg = Debug|Any CPU
 		{B7D2480C-E162-426F-B276-0B1B6DBCEF08}.Debug|Mixed.Build.0 = Debug|Any CPU
 		{B7D2480C-E162-426F-B276-0B1B6DBCEF08}.Release|Mixed.ActiveCfg = Release|x64
 		{B7D2480C-E162-426F-B276-0B1B6DBCEF08}.Release|Mixed.Build.0 = Release|x64
+		{BA278F24-C270-4631-A4E9-247AD2978111}.Debug|Mixed.ActiveCfg = Debug|x64
+		{BA278F24-C270-4631-A4E9-247AD2978111}.Debug|Mixed.Build.0 = Debug|x64
+		{BA278F24-C270-4631-A4E9-247AD2978111}.Release|Mixed.ActiveCfg = Release|x64
+		{BA278F24-C270-4631-A4E9-247AD2978111}.Release|Mixed.Build.0 = Release|x64
+		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Debug|Mixed.ActiveCfg = Debug|x64
+		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Debug|Mixed.Build.0 = Debug|x64
+		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Release|Mixed.ActiveCfg = Release|x64
+		{ED9444DF-F429-4821-915D-E7C44AA450B4}.Release|Mixed.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = ASyncAndroid\ASyncAndroid.csproj
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
