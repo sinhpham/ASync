@@ -10,10 +10,10 @@ namespace ASyncLib
 {
     public class KeyValSync
     {
-        public static void ClientGenBfFile<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Stream clientBFFile)
+        public static void ClientGenBfFile<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, int clientNumOfItems, Stream clientBFFile)
         {
             // Using 8 bits per item.
-            var bf = new BloomFilter(clientDic.Count * 8, BloomFilter.DefaultHashFuncs());
+            var bf = new BloomFilter(clientNumOfItems * 8, BloomFilter.DefaultHashFuncs());
             var hFunc = new MurmurHash3_x86_32();
 
             // Client side.
@@ -32,7 +32,7 @@ namespace ASyncLib
             Debug.WriteLine("Expected bloom filter size: {0} bytes", bf.BitLength / 8 + 4);
         }
 
-        public static void ServerGenPatch1File<TKey, TValue>(Dictionary<TKey, TValue> serverDic, Stream clientBFFile, Stream patch1File)
+        public static void ServerGenPatch1File<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> serverDic, int serverNumOfItems, Stream clientBFFile, Stream patch1File)
         {
             var hFunc = new MurmurHash3_x86_32();
             BloomFilter bf;
@@ -59,7 +59,7 @@ namespace ASyncLib
                 }
             }
 
-            var estimatedDo = Helper.EstimateD0(bf.Count, serverDic.Count, hitNum, bf) + 20;
+            var estimatedDo = Helper.EstimateD0(bf.Count, serverNumOfItems, hitNum, bf) + 20;
             var remainingD0 = estimatedDo - patchDic.Count;
 
 

@@ -163,9 +163,9 @@ namespace ASyncWP
                 _serverDic.Add(i.ToString(), i.ToString());
             }
 
-            KeyValSync.ClientGenBfFile(_clientDic, _bffile);
+            KeyValSync.ClientGenBfFile(_clientDic, _clientDic.Count, _bffile);
             _bffile.Position = 0;
-            KeyValSync.ServerGenPatch1File(_serverDic, _bffile, _p1file);
+            KeyValSync.ServerGenPatch1File(_serverDic, _serverDic.Count, _bffile, _p1file);
             _p1file.Position = 0;
             KeyValSync.ClientPatchAndGenIBFFile(_clientDic, _p1file, _ibffile);
             _ibffile.Position = 0;
