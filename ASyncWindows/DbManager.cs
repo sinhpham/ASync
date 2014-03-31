@@ -19,7 +19,7 @@ namespace ASyncWindows
             {
                 if (engine == null)
                 {
-                    var docFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+                    var docFolder = "./";
                     engine = new DBreezeEngine(docFolder);
                 }
                 return engine;

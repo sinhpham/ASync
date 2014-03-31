@@ -49,6 +49,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BloomFilter.cs" />
+    <Compile Include="DataGen.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="IBF.cs" />
     <Compile Include="IHashFunc.cs" />
