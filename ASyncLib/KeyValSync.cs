@@ -66,7 +66,8 @@ namespace ASyncLib
             Serializer.Serialize(patch1File, Tuple.Create(remainingD0, patchDic));
         }
 
-        public static void ClientPatchAndGenIBFFile<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Stream patch1File, Stream ibfFile)
+        public static void ClientPatchAndGenIBFFile<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, Action<KeyValuePair<TKey, TValue>> patchingAct,
+            Stream patch1File, Stream ibfFile)
         {
             var d0 = 0;
             var patchDic = new Dictionary<TKey, TValue>();
@@ -77,7 +78,7 @@ namespace ASyncLib
             // Apply patch 1.
             foreach (var item in patchDic)
             {
-                clientDic[item.Key] = item.Value;
+                patchingAct(item);
             }
 
             // Phase 2: using invertible bloom filter

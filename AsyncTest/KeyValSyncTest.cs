@@ -42,7 +42,7 @@ namespace AsyncTest
             _bffile.Position = 0;
             KeyValSync.ServerGenPatch1File(_serverDic, _serverDic.Count, _bffile, _p1file);
             _p1file.Position = 0;
-            KeyValSync.ClientPatchAndGenIBFFile(_clientDic, _p1file, _ibffile);
+            KeyValSync.ClientPatchAndGenIBFFile(_clientDic, currItem => _clientDic[currItem.Key] = currItem.Value, _p1file, _ibffile);
             _ibffile.Position = 0;
             KeyValSync.ServerGenPatch2FromIBF(_serverDic, _ibffile, _p2file);
             _p2file.Position = 0;
@@ -67,7 +67,7 @@ namespace AsyncTest
             _bffile.Position = 0;
             KeyValSync.ServerGenPatch1File(_serverDic, _serverDic.Count, _bffile, _p1file);
             _p1file.Position = 0;
-            KeyValSync.ClientPatchAndGenIBFFile(_clientDic, _p1file, _ibffile);
+            KeyValSync.ClientPatchAndGenIBFFile(_clientDic, currItem => _clientDic[currItem.Key] = currItem.Value, _p1file, _ibffile);
             _ibffile.Position = 0;
             KeyValSync.ServerGenPatch2FromIBF(_serverDic, _ibffile, _p2file);
             _p2file.Position = 0;
