@@ -13,26 +13,9 @@ namespace ASyncWindows
     {
         static void Main(string[] args)
         {
-            var dic = new Dictionary<string, string>();
-            foreach (var item in DataGen.Gen(5000000, 0))
-            {
-                dic.Add(item.Key, item.Value);
-            }
-
-            var dic2 = new Dictionary<string, string>();
-            foreach (var item in DataGen.Gen(5000000, 10))
-            {
-                dic2.Add(item.Key, item.Value);
-            }
-
-            //using (var trans = DbManager.Engine.GetTransaction())
-            //{
-            //    foreach (var item in DataGen.Gen(5000000, 0))
-            //    {
-            //        trans.Insert("t1", item.Key, item.Value);
-            //    }
-            //}
-            var d = NumeOfDiff(dic, dic2);
+            GenServerData(5000000, 50);
+            
+            //var d = NumeOfDiff(dic, dic2);
 
             var a = 0;
             //using (var tran = DbManager.Engine.GetTransaction())
@@ -46,6 +29,20 @@ namespace ASyncWindows
             //        }
             //    }
             //}
+        }
+
+        private static void GenServerData(int size, int changedPercent)
+        {
+            // Gen data for server
+            using (var trans = DbManager.Engine.GetTransaction())
+            {
+                foreach (var item in DataGen.Gen(size, changedPercent))
+                {
+                    trans.Insert("t1", item.Key, item.Value);
+                }
+                trans.Commit();
+            }
+            DbManager.Dispose();
         }
 
         static int NumeOfDiff(dynamic dic1, dynamic dic2)
