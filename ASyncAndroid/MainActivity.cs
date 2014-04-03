@@ -27,12 +27,20 @@ namespace ASyncAndroid
             // and attach an event to it
             Button button = FindViewById<Button>(Resource.Id.myButton);
             
-            button.Click += async delegate
+            button.Click += delegate
             {
-                //GenClientData(5000000);
-                //GenBfFileFromDb();
-                await DownloadPatch1File();
+                Console.WriteLine("Starting...");
+                //var d = Android.OS.Environment.ExternalStorageDirectory + "/async/db";
+                //Console.WriteLine(d);
 
+                //GenClientData(5000000);
+                //CheckDbData(5000000);
+                //Console.WriteLine("Done generating client db");
+                //GenBfFileFromDb();
+                //await DownloadPatch1File();
+                //Console.WriteLine("Done downloading patch1 file");
+                PatchAndGenIBFFile();
+                Console.WriteLine("Donw generating ibf file");
 
                 var a = 0;
             };
@@ -49,6 +57,27 @@ namespace ASyncAndroid
                 trans.Commit();
             }
             DbManager.Dispose();
+        }
+
+        private static bool CheckDbData(int size)
+        {
+            using (var trans = DbManager.Engine.GetTransaction())
+            {
+                foreach (var item in DataGen.Gen(size, 0))
+                {
+                    var inDbVal = trans.Select<string, string>("t1", item.Key);
+                    if (!inDbVal.Exists)
+                    {
+                        throw new InvalidDataException();
+                    }
+                    if (inDbVal.Value != item.Value)
+                    {
+                        throw new InvalidDataException();
+                    }
+                }
+            }
+            DbManager.Dispose();
+            return true;
         }
 
         private static void GenBfFileFromDb()
@@ -76,9 +105,26 @@ namespace ASyncAndroid
 
         private static async Task DownloadPatch1File()
         {
-            var docFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
-           
             await NetworkManager.FtpDownload("ftp://10.81.4.120/patch1file.dat", "patch1file.dat");
+        }
+
+        private static void PatchAndGenIBFFile()
+        {
+            Console.WriteLine("Starting patching and generating ibf file");
+            using (var trans = DbManager.Engine.GetTransaction())
+            {
+                var clientDic = trans.SelectForward<string, string>("t1").Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
+                var docFolder = DbManager.AppDir;
+                using (var patch1File = File.OpenRead(Path.Combine(docFolder, "patch1file.dat")))
+                {
+                    using (var ibffile = File.OpenWrite(Path.Combine(docFolder, "ibffile.dat")))
+                    {
+                        KeyValSync.ClientPatchAndGenIBFFile(clientDic, currItem => trans.Insert("t1", currItem.Key, currItem.Value), patch1File, ibffile);
+                    }
+                }
+                trans.Commit();
+            }
+            DbManager.Dispose();
         }
     }
 }

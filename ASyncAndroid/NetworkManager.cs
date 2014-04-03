@@ -38,7 +38,7 @@ namespace ASyncAndroid
             // This example assumes the FTP site uses anonymous logon.
             request.Credentials = new NetworkCredential("asyncuser", (string)null);
 
-            var docFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+            var docFolder = DbManager.AppDir;
             var filename = Path.Combine(docFolder, filePath);
 
             using (var fileStream = File.Create(filename))

@@ -15,10 +15,18 @@ namespace ASyncAndroid
             {
                 if (engine == null)
                 {
-                    var docFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+                    var docFolder = Path.Combine(AppDir, "db");
                     engine = new DBreezeEngine(docFolder);
                 }
                 return engine;
+            }
+        }
+
+        public static string AppDir
+        {
+            get
+            {
+                return Android.OS.Environment.ExternalStorageDirectory + "/async";
             }
         }
 
@@ -27,42 +35,6 @@ namespace ASyncAndroid
             if (engine != null)
             {
                 engine.Dispose();
-            }
-        }
-
-        public static void GenDataSet(int baseSize, int changedPercent)
-        {
-            var hFunc = SHA1.Create();
-
-            using (var tran = DbManager.Engine.GetTransaction())
-            {
-                for (var i = 0; i < baseSize; ++i)
-                {
-                    var str = BitConverter.ToString(hFunc.ComputeHash(BitConverter.GetBytes(i)));
-                    var valStr = str + str;
-                    tran.Insert("t1", i.ToString(), valStr);
-                }
-                tran.Commit();
-            }
-        }
-
-        public static void CheckDataSet(int baseSize, int changedPercent)
-        {
-            var hFunc = SHA1.Create();
-
-            using (var tran = DbManager.Engine.GetTransaction())
-            {
-                for (var i = 0; i < baseSize; ++i)
-                {
-                    var str = BitConverter.ToString(hFunc.ComputeHash(BitConverter.GetBytes(i)));
-                    var valStr = str + str;
-
-                    var storedVal = tran.Select<string, string>("t1", i.ToString()).Value;
-                    if (storedVal != valStr)
-                    {
-                        throw new InvalidDataException();
-                    }
-                }
             }
         }
     }

@@ -1,9 +1,18 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|Mixed" />
-  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="ASyncAndroid/MainActivity.cs">
+    <Files>
+      <File FileName="ASyncAndroid/MainActivity.cs" Line="50" Column="1" />
+      <File FileName="ASyncAndroid/DbManager.cs" Line="14" Column="16" />
+      <File FileName="ASyncLib/DataGen.cs" Line="1" Column="1" />
+      <File FileName="ASyncAndroid/NetworkManager.cs" Line="1" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore />
+    <BreakpointStore>
+      <Breakpoint file="/Users/sinhpham/Desktop/Projects/ASync/ASyncAndroid/MainActivity.cs" line="50" column="1" />
+    </BreakpointStore>
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.ItemProperties.ASyncAndroid />
+  <MonoDevelop.Ide.ItemProperties.ASyncAndroid AndroidDeviceId-Debug="06db8349" AndroidDeviceId-Release="06db8349" />
 </Properties>
