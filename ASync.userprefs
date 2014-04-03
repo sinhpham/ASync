@@ -2,13 +2,12 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="ASyncAndroid/MainActivity.cs">
     <Files>
-      <File FileName="ASyncAndroid/MainActivity.cs" Line="141" Column="38" />
-      <File FileName="ASyncLib/KeyValSync.cs" Line="1" Column="1" />
+      <File FileName="ASyncAndroid/MainActivity.cs" Line="21" Column="10" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
-  <MonoDevelop.Ide.ItemProperties.ASyncAndroid AndroidDeviceId-Debug="06db8349" AndroidDeviceId-Release="06db8349" />
+  <MonoDevelop.Ide.ItemProperties.ASyncAndroid AndroidDeviceId-Release="06db8349" MonoForAntroid.PreferredDevice="3.7&quot; WVGA (Nexus One)" AndroidDeviceId-Debug="06db8349" />
 </Properties>

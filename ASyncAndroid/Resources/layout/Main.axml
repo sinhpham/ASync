@@ -1,14 +1,62 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
-<Button  
-    android:id="@+id/myButton"
-    android:layout_width="fill_parent" 
-    android:layout_height="wrap_content" 
-    android:text="@string/hello"
-    />
+    android:layout_height="fill_parent">
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText1" />
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText2" />
+    <Button
+        android:id="@+id/myButton"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Gen db"
+        android:onClick="GenDBClicked" />
+    <Button
+        android:text="Check db"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/checkBtn"
+        android:onClick="CheckDbClicked" />
+    <Button
+        android:text="Gen bloom filter file from db"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/genBloomBtn"
+        android:onClick="GenBFClicked" />
+    <Button
+        android:text="Download file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/downloadBtn"
+        android:onClick="DownloadClicked" />
+    <Button
+        android:text="Apply patch 1 and gen ibf"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/patch1Btn"
+        android:onClick="Patch1Clicked" />
+    <Button
+        android:text="Upload ibf"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/uploadBtn"
+        android:onClick="UploadClicked" />
+    <Button
+        android:text="Apply patch 2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/patch2Btn"
+        android:onClick="Patch2Clicked" />
+    <Button
+        android:text="Dispose db"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/button1"
+        android:onClick="DisposeDbClicked" />
 </LinearLayout>
-
