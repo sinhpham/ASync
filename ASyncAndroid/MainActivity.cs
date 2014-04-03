@@ -124,7 +124,7 @@ namespace ASyncAndroid
                     using (var ibffile = File.OpenWrite(Path.Combine(docFolder, "ibffile.dat")))
                     {
                         var d0 = int.Parse(patch1File.ReadLine());
-                        var patchItems = ReadLinesFromTextStream(patch1File).Select(str =>
+                        var patchItems = Helper.ReadLinesFromTextStream(patch1File).Select(str =>
                         {
                             var strArr = str.Split(' ');
                             return new KeyValuePair<string, string>(strArr[0], strArr[1]);
@@ -144,15 +144,6 @@ namespace ASyncAndroid
             using (var bffile = File.OpenRead(Path.Combine(docFolder, "ibffile.dat")))
             {
                 await NetworkManager.FtpUpload("ftp://10.81.4.120", bffile, "ibffile.dat");
-            }
-        }
-
-        private static IEnumerable<string> ReadLinesFromTextStream(StreamReader s)
-        {
-            string line;
-            while ((line = s.ReadLine()) != null)
-            {
-                yield return line;
             }
         }
     }

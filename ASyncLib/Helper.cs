@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,6 +40,15 @@ namespace ASyncLib
             char[] chars = new char[bytes.Length / sizeof(char)];
             System.Buffer.BlockCopy(bytes, 0, chars, 0, bytes.Length);
             return new string(chars);
+        }
+
+        public static IEnumerable<string> ReadLinesFromTextStream(StreamReader s)
+        {
+            string line;
+            while ((line = s.ReadLine()) != null)
+            {
+                yield return line;
+            }
         }
     }
 }

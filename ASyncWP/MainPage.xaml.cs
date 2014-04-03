@@ -140,42 +140,7 @@ namespace ASyncWP
 
         private void RunClicked(object sender, RoutedEventArgs e)
         {
-            var clientDic = new Dictionary<string, string>();
-
-            var x = MyUploader("Data/50000-clientDic.dat", "http://10.81.4.120:8080/aaa/").Result;
-
-            //Upload("http://10.81.4.120:8080/aaa/", "Data/500000-clientDic.dat");
-            //DownloadFile("http://10.81.4.120:8080/aaa/50000-clientDic.dat");
-
-            var _clientDic = new Dictionary<string, string>();
-            var _serverDic = new Dictionary<string, string>();
-            var _bffile = new MemoryStream();
-            var _p1file = new MemoryStream();
-            var _ibffile = new MemoryStream();
-            var _p2file = new MemoryStream();
-
-            for (var i = 0; i < 200; ++i)
-            {
-                _clientDic.Add(i.ToString(), i.ToString());
-            }
-            for (var i = 0; i < 250; ++i)
-            {
-                _serverDic.Add(i.ToString(), i.ToString());
-            }
-
-            KeyValSync.ClientGenBfFile(_clientDic, _clientDic.Count, _bffile);
-            _bffile.Position = 0;
-            KeyValSync.ServerGenPatch1File(_serverDic, _serverDic.Count, _bffile, _p1file);
-            _p1file.Position = 0;
-            KeyValSync.ClientPatchAndGenIBFFile(_clientDic, currItem => _clientDic[currItem.Key] = currItem.Value, _p1file, _ibffile);
-            _ibffile.Position = 0;
-            KeyValSync.ServerGenPatch2FromIBF(_serverDic, _ibffile, _p2file);
-            _p2file.Position = 0;
-            KeyValSync.ClientPatch(_clientDic, _p2file);
-
-            var ans = KeyValSync.AreTheSame(_clientDic, _serverDic);
-
-            var a = 0;
+            
         }
     }
 }

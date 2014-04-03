@@ -13,12 +13,16 @@ namespace ASyncWindows
     {
         static void Main(string[] args)
         {
-            GenPatch1File();
+            //GenPatch1File();
+
+            GenPatch2File();
 
 
             var a = 0;
 
         }
+
+        
 
         private static void GenServerData(int size, int changedPercent)
         {
@@ -47,6 +51,31 @@ namespace ASyncWindows
                     }
                 }
             }
+        }
+
+        private static void GenPatch2File()
+        {
+            using (var tran = DbManager.Engine.GetTransaction())
+            {
+                var serverDic = tran.SelectForward<string, string>("t1").Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
+
+                using (var ibfFile = File.OpenRead("ibffile.dat"))
+                {
+                    using (var p2File = File.OpenWrite("patch2file.dat"))
+                    {
+                        KeyValSync.ServerGenPatch2FromIBF(serverDic, key =>
+                        {
+                            var v = tran.Select<string, string>("t1", key);
+                            if (!v.Exists)
+                            {
+                                throw new InvalidDataException();
+                            }
+                            return v.Value;
+                        }, ibfFile, p2File);
+                    }
+                }
+            }
+            DbManager.Dispose();
         }
 
         static int NumeOfDiff(dynamic dic1, dynamic dic2)

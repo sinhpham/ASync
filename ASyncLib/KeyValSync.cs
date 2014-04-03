@@ -62,7 +62,7 @@ namespace ASyncLib
             var estimatedDo = Helper.EstimateD0(bf.Count, serverNumOfItems, hitNum, bf) + 20;
             var remainingD0 = estimatedDo - patchDic.Count;
 
-            using (var sw = new StreamWriter(patch1File))
+            using (var sw = new StreamWriter(patch1File, Encoding.UTF8, 4096, true))
             {
                 sw.WriteLine(remainingD0);
                 foreach (var item in patchDic)
@@ -95,7 +95,8 @@ namespace ASyncLib
             Serializer.Serialize(ibfFile, ibf);
         }
 
-        public static void ServerGenPatch2FromIBF<TKey, TValue>(Dictionary<TKey, TValue> serverDic, Stream clientIBFFile, Stream patch2File)
+        public static void ServerGenPatch2FromIBF<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> serverDic, Func<TKey, TValue> readingAct,
+            Stream clientIBFFile, Stream patch2File)
         {
             IBF clientIBF;
 
@@ -126,7 +127,7 @@ namespace ASyncLib
             foreach (var hValue in idSmC)
             {
                 var key = idToKey[hValue];
-                patchDic[key] = serverDic[key];
+                patchDic[key] = readingAct(key);
             }
 
 

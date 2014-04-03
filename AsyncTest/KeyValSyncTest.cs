@@ -3,6 +3,7 @@ using ASyncLib;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace AsyncTest
 {
@@ -38,15 +39,7 @@ namespace AsyncTest
                 _serverDic.Add(i.ToString(), i.ToString());
             }
 
-            KeyValSync.ClientGenBfFile(_clientDic, _clientDic.Count, _bffile);
-            _bffile.Position = 0;
-            KeyValSync.ServerGenPatch1File(_serverDic, _serverDic.Count, _bffile, _p1file);
-            _p1file.Position = 0;
-            KeyValSync.ClientPatchAndGenIBFFile(_clientDic, currItem => _clientDic[currItem.Key] = currItem.Value, _p1file, _ibffile);
-            _ibffile.Position = 0;
-            KeyValSync.ServerGenPatch2FromIBF(_serverDic, _ibffile, _p2file);
-            _p2file.Position = 0;
-            KeyValSync.ClientPatch(_clientDic, _p2file);
+            DoSync();
 
             CollectionAssert.AreEquivalent(_clientDic, _serverDic);
         }
@@ -63,17 +56,31 @@ namespace AsyncTest
                 _serverDic.Add(i.ToString(), i.ToString());
             }
 
+            DoSync();
+
+            CollectionAssert.AreEquivalent(_clientDic, _serverDic);
+        }
+
+        private void DoSync()
+        {
             KeyValSync.ClientGenBfFile(_clientDic, _clientDic.Count, _bffile);
             _bffile.Position = 0;
             KeyValSync.ServerGenPatch1File(_serverDic, _serverDic.Count, _bffile, _p1file);
             _p1file.Position = 0;
-            KeyValSync.ClientPatchAndGenIBFFile(_clientDic, currItem => _clientDic[currItem.Key] = currItem.Value, _p1file, _ibffile);
+            using (var sr = new StreamReader(_p1file))
+            {
+                var d0 = int.Parse(sr.ReadLine());
+                var patchItems = Helper.ReadLinesFromTextStream(sr).Select(str =>
+                {
+                    var strArr = str.Split(' ');
+                    return new KeyValuePair<string, string>(strArr[0], strArr[1]);
+                });
+                KeyValSync.ClientPatchAndGenIBFFile(_clientDic, currItem => _clientDic[currItem.Key] = currItem.Value, patchItems, d0, _ibffile);
+            }
             _ibffile.Position = 0;
-            KeyValSync.ServerGenPatch2FromIBF(_serverDic, _ibffile, _p2file);
+            KeyValSync.ServerGenPatch2FromIBF(_serverDic, key => _serverDic[key], _ibffile, _p2file);
             _p2file.Position = 0;
             KeyValSync.ClientPatch(_clientDic, _p2file);
-
-            CollectionAssert.AreEquivalent(_clientDic, _serverDic);
         }
     }
 }
