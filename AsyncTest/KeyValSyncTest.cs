@@ -80,7 +80,7 @@ namespace AsyncTest
             _ibffile.Position = 0;
             KeyValSync.ServerGenPatch2FromIBF(_serverDic, key => _serverDic[key], _ibffile, _p2file);
             _p2file.Position = 0;
-            KeyValSync.ClientPatch(_clientDic, _p2file);
+            KeyValSync.ClientPatch<string, string>(currItem => _clientDic[currItem.Key] = currItem.Value, _p2file);
         }
     }
 }

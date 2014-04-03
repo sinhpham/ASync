@@ -134,14 +134,14 @@ namespace ASyncLib
             Serializer.Serialize(patch2File, patchDic);
         }
 
-        public static void ClientPatch<TKey, TValue>(Dictionary<TKey, TValue> clientDic, Stream patch2File)
+        public static void ClientPatch<TKey, TValue>(Action<KeyValuePair<TKey, TValue>> patchingAct, Stream patch2File)
         {
             var patchDic = new Dictionary<TKey, TValue>();
             patchDic = Serializer.Deserialize<Dictionary<TKey, TValue>>(patch2File);
 
             foreach (var item in patchDic)
             {
-                clientDic[item.Key] = item.Value;
+                patchingAct(item);
             }
         }
 
