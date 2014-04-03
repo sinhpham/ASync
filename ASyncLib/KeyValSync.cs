@@ -62,27 +62,28 @@ namespace ASyncLib
             var estimatedDo = Helper.EstimateD0(bf.Count, serverNumOfItems, hitNum, bf) + 20;
             var remainingD0 = estimatedDo - patchDic.Count;
 
-
-            Serializer.Serialize(patch1File, Tuple.Create(remainingD0, patchDic));
+            using (var sw = new StreamWriter(patch1File))
+            {
+                sw.WriteLine(remainingD0);
+                foreach (var item in patchDic)
+                {
+                    sw.WriteLine(string.Format("{0} {1}", item.Key, item.Value));
+                }
+            }
+            //Serializer.Serialize(patch1File, Tuple.Create(remainingD0, patchDic));
         }
 
         public static void ClientPatchAndGenIBFFile<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, Action<KeyValuePair<TKey, TValue>> patchingAct,
-            Stream patch1File, Stream ibfFile)
+            IEnumerable<KeyValuePair<TKey, TValue>> patchItems, int _d0, Stream ibfFile)
         {
-            var d0 = 0;
-            var patchDic = new Dictionary<TKey, TValue>();
-
-            var t = Serializer.Deserialize<Tuple<int, Dictionary<TKey, TValue>>>(patch1File);
-            d0 = t.Item1;
-            patchDic = t.Item2;
             // Apply patch 1.
-            foreach (var item in patchDic)
+            foreach (var item in patchItems)
             {
                 patchingAct(item);
             }
 
             // Phase 2: using invertible bloom filter
-            var ibf = new IBF(2 * d0, BloomFilter.DefaultHashFuncs(3));
+            var ibf = new IBF(2 * _d0, BloomFilter.DefaultHashFuncs(3));
             //var hFunc = new MurmurHash3_x64_128();
             foreach (var item in clientDic)
             {
