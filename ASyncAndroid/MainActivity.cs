@@ -27,7 +27,7 @@ namespace ASyncAndroid
             // and attach an event to it
             Button button = FindViewById<Button>(Resource.Id.myButton);
             
-            button.Click += delegate
+            button.Click += async delegate
             {
                 Console.WriteLine("Starting...");
                 //var d = Android.OS.Environment.ExternalStorageDirectory + "/async/db";
@@ -37,10 +37,14 @@ namespace ASyncAndroid
                 //CheckDbData(5000000);
                 //Console.WriteLine("Done generating client db");
                 //GenBfFileFromDb();
-                //await DownloadPatch1File();
-                //Console.WriteLine("Done downloading patch1 file");
-                PatchAndGenIBFFile();
-                Console.WriteLine("Donw generating ibf file");
+//                await DownloadPatch1File();
+//                Console.WriteLine("Done downloading patch1 file");
+
+//                PatchAndGenIBFFile();
+//                Console.WriteLine("Donw generating ibf file");
+
+                await UploadIBfFileToServer();
+                Console.WriteLine("Done uploading ibf file");
 
                 var a = 0;
             };
@@ -96,7 +100,7 @@ namespace ASyncAndroid
 
         private static async Task UploadBfFileToServer()
         {
-            var docFolder = System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyDocuments);
+            var docFolder = DbManager.AppDir;
             using (var bffile = File.OpenRead(Path.Combine(docFolder, "bffile.dat")))
             {
                 await NetworkManager.FtpUpload("ftp://10.81.4.120", bffile, "bffile.dat");
@@ -105,7 +109,7 @@ namespace ASyncAndroid
 
         private static async Task DownloadPatch1File()
         {
-            await NetworkManager.FtpDownload("ftp://10.81.4.120/patch1file.dat", "patch1file.dat");
+            await NetworkManager.FtpDownload("ftp://10.81.4.120/patch1filetext.dat", "patch1file.dat");
         }
 
         private static void PatchAndGenIBFFile()
@@ -115,16 +119,41 @@ namespace ASyncAndroid
             {
                 var clientDic = trans.SelectForward<string, string>("t1").Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
                 var docFolder = DbManager.AppDir;
-                using (var patch1File = File.OpenRead(Path.Combine(docFolder, "patch1file.dat")))
+                using (var patch1File = File.OpenText(Path.Combine(docFolder, "patch1file.dat")))
                 {
                     using (var ibffile = File.OpenWrite(Path.Combine(docFolder, "ibffile.dat")))
                     {
-                        KeyValSync.ClientPatchAndGenIBFFile(clientDic, currItem => trans.Insert("t1", currItem.Key, currItem.Value), patch1File, ibffile);
+                        var d0 = int.Parse(patch1File.ReadLine());
+                        var patchItems = ReadLinesFromTextStream(patch1File).Select(str =>
+                        {
+                            var strArr = str.Split(' ');
+                            return new KeyValuePair<string, string>(strArr[0], strArr[1]);
+                        });
+
+                        KeyValSync.ClientPatchAndGenIBFFile(clientDic, currItem => trans.Insert("t1", currItem.Key, currItem.Value), patchItems, d0, ibffile);
                     }
                 }
                 trans.Commit();
             }
             DbManager.Dispose();
+        }
+
+        private static async Task UploadIBfFileToServer()
+        {
+            var docFolder = DbManager.AppDir;
+            using (var bffile = File.OpenRead(Path.Combine(docFolder, "ibffile.dat")))
+            {
+                await NetworkManager.FtpUpload("ftp://10.81.4.120", bffile, "ibffile.dat");
+            }
+        }
+
+        private static IEnumerable<string> ReadLinesFromTextStream(StreamReader s)
+        {
+            string line;
+            while ((line = s.ReadLine()) != null)
+            {
+                yield return line;
+            }
         }
     }
 }
