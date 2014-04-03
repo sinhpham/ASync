@@ -43,8 +43,11 @@ namespace ASyncAndroid
 //                PatchAndGenIBFFile();
 //                Console.WriteLine("Donw generating ibf file");
 
-                await UploadIBfFileToServer();
-                Console.WriteLine("Done uploading ibf file");
+//                await UploadIBfFileToServer();
+//                Console.WriteLine("Done uploading ibf file");
+
+//                await DownloadPatch2File();
+//                Console.WriteLine("done downloading p2 file");
 
                 var a = 0;
             };
@@ -136,6 +139,11 @@ namespace ASyncAndroid
                 trans.Commit();
             }
             DbManager.Dispose();
+        }
+
+        private static async Task DownloadPatch2File()
+        {
+            await NetworkManager.FtpDownload("ftp://10.81.4.120/patch2file.dat", "patch2file.dat");
         }
 
         private static async Task UploadIBfFileToServer()
