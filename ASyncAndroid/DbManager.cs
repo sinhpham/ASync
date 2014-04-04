@@ -30,6 +30,14 @@ namespace ASyncAndroid
             }
         }
 
+        public static string DefaultTableName
+        {
+            get
+            {
+                return "t1";
+            }
+        }
+
         public static void Dispose()
         {
             if (engine != null)
