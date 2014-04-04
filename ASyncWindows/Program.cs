@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ASyncLib;
 using System.IO;
 using ProtoBuf;
+using System.Diagnostics;
 
 namespace ASyncWindows
 {
@@ -13,25 +14,36 @@ namespace ASyncWindows
     {
         static void Main(string[] args)
         {
-            //GenPatch1File();
+            _dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "aaa"); ;
 
-            GenPatch2File();
+            //RunFunctionTimed(() => GenServerData(5000000, 50));
+            //RunFunctionTimed(() => GenPatch1File());
+
+            RunFunctionTimed(() => GenPatch2File());
 
 
             var a = 0;
 
         }
 
-        
+        static string _dataDir;
+        static string DataDir
+        {
+            get
+            {
+                return _dataDir;
+            }
+        }
 
         private static void GenServerData(int size, int changedPercent)
         {
             // Gen data for server
             using (var trans = DbManager.Engine.GetTransaction())
             {
+                trans.Technical_SetTable_OverwriteIsNotAllowed(DbManager.DefaultTableName);
                 foreach (var item in DataGen.Gen(size, changedPercent))
                 {
-                    trans.Insert("t1", item.Key, item.Value);
+                    trans.Insert(DbManager.DefaultTableName, item.Key, item.Value);
                 }
                 trans.Commit();
             }
@@ -40,14 +52,15 @@ namespace ASyncWindows
 
         private static void GenPatch1File()
         {
-            using (var tran = DbManager.Engine.GetTransaction())
+            using (var trans = DbManager.Engine.GetTransaction())
             {
-                var serverDic = tran.SelectForward<string, string>("t1").Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
-                using (var bffile = File.OpenRead("bffile.dat"))
+                trans.Technical_SetTable_OverwriteIsNotAllowed(DbManager.DefaultTableName);
+                var serverDic = trans.SelectForward<string, string>(DbManager.DefaultTableName).Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
+                using (var bffile = File.OpenRead(Path.Combine(DataDir, "bffile.dat")))
                 {
-                    using (var pfile = File.OpenWrite("patch1file.dat"))
+                    using (var pfile = File.OpenWrite(Path.Combine(DataDir, "patch1file.dat")))
                     {
-                        KeyValSync.ServerGenPatch1File(serverDic, (int)tran.Count("t1"), bffile, pfile);
+                        KeyValSync.ServerGenPatch1File(serverDic, (int)trans.Count(DbManager.DefaultTableName), bffile, pfile);
                     }
                 }
             }
@@ -55,17 +68,18 @@ namespace ASyncWindows
 
         private static void GenPatch2File()
         {
-            using (var tran = DbManager.Engine.GetTransaction())
+            using (var trans = DbManager.Engine.GetTransaction())
             {
-                var serverDic = tran.SelectForward<string, string>("t1").Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
+                trans.Technical_SetTable_OverwriteIsNotAllowed(DbManager.DefaultTableName);
+                var serverDic = trans.SelectForward<string, string>(DbManager.DefaultTableName).Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
 
-                using (var ibfFile = File.OpenRead("ibffile.dat"))
+                using (var ibfFile = File.OpenRead(Path.Combine(DataDir, "ibffile.dat")))
                 {
-                    using (var p2File = File.OpenWrite("patch2file.dat"))
+                    using (var p2File = File.OpenWrite(Path.Combine(DataDir, "patch2file.dat")))
                     {
                         KeyValSync.ServerGenPatch2FromIBF(serverDic, key =>
                         {
-                            var v = tran.Select<string, string>("t1", key);
+                            var v = trans.Select<string, string>(DbManager.DefaultTableName, key);
                             if (!v.Exists)
                             {
                                 throw new InvalidDataException();
@@ -96,6 +110,15 @@ namespace ASyncWindows
             }
             count += Math.Abs(dic2.Count - dic1.Count);
             return count;
+        }
+
+        static void RunFunctionTimed(Action act)
+        {
+            var sw = new Stopwatch();
+            sw.Start();
+            act();
+            sw.Stop();
+            Console.WriteLine("Done in {0}", sw.Elapsed);
         }
     }
 }
