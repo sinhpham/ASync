@@ -11,6 +11,8 @@
     <AssemblyName>ASyncWindows</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,13 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="DBreeze">
-      <HintPath>..\packages\DBreeze.1.61.1\lib\net45\DBreeze.dll</HintPath>
-    </Reference>
-    <Reference Include="protobuf-net, Version=2.0.0.668, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\protobuf-net.2.0.0.668\lib\net40\protobuf-net.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -47,6 +42,12 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="protobuf-net">
+      <HintPath>..\packages\protobuf-net.2.0.0.668\lib\net40\protobuf-net.dll</HintPath>
+    </Reference>
+    <Reference Include="DBreeze">
+      <HintPath>..\packages\DBreeze.1.61.1\lib\net45\DBreeze.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DbManager.cs" />
@@ -59,7 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ASyncLib\ASyncLib.csproj">
-      <Project>{b7d2480c-e162-426f-b276-0b1b6dbcef08}</Project>
+      <Project>{B7D2480C-E162-426F-B276-0B1B6DBCEF08}</Project>
       <Name>ASyncLib</Name>
     </ProjectReference>
   </ItemGroup>

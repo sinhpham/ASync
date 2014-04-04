@@ -1,8 +1,13 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="ASyncAndroid/MainActivity.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="ASyncWindows/DbManager.cs">
     <Files>
-      <File FileName="ASyncAndroid/MainActivity.cs" Line="21" Column="10" />
+      <File FileName="ASyncAndroid/MainActivity.cs" Line="1" Column="1" />
+      <File FileName="ASyncAndroid/NetworkManager.cs" Line="1" Column="1" />
+      <File FileName="ASyncLib/KeyValSync.cs" Line="1" Column="1" />
+      <File FileName="ASyncLib/IBF.cs" Line="1" Column="1" />
+      <File FileName="ASyncLib/DataGen.cs" Line="1" Column="1" />
+      <File FileName="ASyncWindows/DbManager.cs" Line="16" Column="43" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
