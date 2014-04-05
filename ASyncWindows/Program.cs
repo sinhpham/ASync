@@ -16,7 +16,7 @@ namespace ASyncWindows
         {
             _dataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "aaa"); ;
 
-            //RunFunctionTimed(() => GenServerData(5000000, 50));
+            //RunFunctionTimed(() => GenServerData(2000000, 50));
             //RunFunctionTimed(() => GenPatch1File());
 
             RunFunctionTimed(() => GenPatch2File());
