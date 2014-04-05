@@ -26,6 +26,8 @@ namespace ASyncAndroid
             SetContentView(Resource.Layout.Main);
         }
 
+        Dictionary<string, string> _dicDb = new Dictionary<string, string>();
+
         [Export]
         public void GenDBClicked(View v)
         {
@@ -34,9 +36,16 @@ namespace ASyncAndroid
 
             var size = int.Parse(tf1.Text);
             var changedPer = int.Parse(tf2.Text);
-
             Console.WriteLine("Gen db");
-            RunFunctionTimed(() => GenClientData(size, changedPer));
+            //RunFunctionTimed(() => GenClientData(size, changedPer));
+
+            RunFunctionTimed(() =>
+            {
+                foreach (var item in DataGen.Gen(size,changedPer))
+                {
+                    _dicDb.Add(item.Key, item.Value);
+                }
+            });
             Console.WriteLine("Done gen db");
         }
 
@@ -49,7 +58,22 @@ namespace ASyncAndroid
 
             var size = int.Parse(tf1.Text);
             var changedPer = int.Parse(tf2.Text);
-            RunFunctionTimed(() => CheckDbData(size, changedPer));
+            //RunFunctionTimed(() => CheckDbData(size, changedPer));
+            RunFunctionTimed(() =>
+            {
+                foreach (var item in DataGen.Gen(size, changedPer))
+                {
+                    var inDbVal = _dicDb[item.Key];
+                    if (inDbVal != item.Value)
+                    {
+                        throw new InvalidDataException();
+                    }
+                }
+                if (_dicDb.Count != size + changedPer / 2 * size / 100) {
+                    throw new InvalidDataException();
+                }
+            });
+
             Console.WriteLine("Done checking db");
         }
 
@@ -57,7 +81,16 @@ namespace ASyncAndroid
         public void GenBFClicked(View v)
         {
             Console.WriteLine("Gen BF");
-            RunFunctionTimed(() => GenBfFileFromDb());
+            //RunFunctionTimed(() => GenBfFileFromDb());
+
+            RunFunctionTimed(() =>
+            {
+                var docFolder = DbManager.AppDir;
+                using (var bffile = File.OpenWrite(Path.Combine(docFolder, "bffile.dat")))
+                {
+                    KeyValSync.ClientGenBfFile(_dicDb, _dicDb.Count, bffile);
+                }
+            });
             Console.WriteLine("Done gen bf");
         }
 
@@ -84,7 +117,25 @@ namespace ASyncAndroid
         public void Patch1Clicked(View v)
         {
             Console.WriteLine("Patch 1 and gen ibf");
-            RunFunctionTimed(() => PatchAndGenIBFFile());
+            //RunFunctionTimed(() => PatchAndGenIBFFile());
+            RunFunctionTimed(() =>
+            {
+                var docFolder = DbManager.AppDir;
+                using (var patch1File = File.OpenText(Path.Combine(docFolder, "patch1file.dat")))
+                {
+                    using (var ibffile = File.OpenWrite(Path.Combine(docFolder, "ibffile.dat")))
+                    {
+                        var d0 = int.Parse(patch1File.ReadLine());
+                        var patchItems = Helper.ReadLinesFromTextStream(patch1File).Select(str =>
+                        {
+                            var strArr = str.Split(' ');
+                            return new KeyValuePair<string, string>(strArr[0], strArr[1]);
+                        });
+                        KeyValSync.ClientPatchAndGenIBFFile(_dicDb, currItem => _dicDb[currItem.Key] = currItem.Value, patchItems, d0, ibffile);
+                    }
+                }
+            });
+
             Console.WriteLine("Done generating ibf file");
         }
 
@@ -112,7 +163,16 @@ namespace ASyncAndroid
         public void Patch2Clicked(View v)
         {
             Console.WriteLine("Patch2 clicked");
-            RunFunctionTimed(() => ClientApplyPatch2());
+            //RunFunctionTimed(() => ClientApplyPatch2());
+
+            RunFunctionTimed(() =>
+            {
+                var docFolder = DbManager.AppDir;
+                using (var patch2File = File.OpenRead(Path.Combine(docFolder, "patch2file.dat")))
+                {
+                    KeyValSync.ClientPatch<string, string>(currItem => _dicDb[currItem.Key] = currItem.Value, patch2File);
+                }
+            });
             Console.WriteLine("Done patch 2");
         }
 
