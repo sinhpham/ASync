@@ -19,7 +19,7 @@ namespace ASyncWindows
             //RunFunctionTimed(() => GenServerData(2000000, 50));
             //RunFunctionTimed(() => GenPatch1File());
 
-            RunFunctionTimed(() => GenPatch2File());
+            //RunFunctionTimed(() => GenPatch2File());
 
 
             var a = 0;
