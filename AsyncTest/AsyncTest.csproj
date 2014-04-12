@@ -70,6 +70,7 @@
     <Compile Include="IBFTest.cs" />
     <Compile Include="MurmurHashTest.cs" />
     <Compile Include="KeyValSyncTest.cs" />
+    <Compile Include="StrataEstimatorTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ASyncLib\ASyncLib.csproj">
