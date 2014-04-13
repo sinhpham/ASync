@@ -15,11 +15,11 @@ namespace AsyncTest
 
             var _clientDic = new Dictionary<string, string>();
             var _serverDic = new Dictionary<string, string>();
-            for (var i = 0; i < 2000; ++i)
+            for (var i = 0; i < 20000; ++i)
             {
                 _clientDic.Add(i.ToString(), i.ToString());
             }
-            for (var i = 0; i < 2005; ++i)
+            for (var i = 0; i < 20005; ++i)
             {
                 _serverDic.Add(i.ToString(), i.ToString());
             }

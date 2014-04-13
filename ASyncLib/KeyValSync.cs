@@ -83,8 +83,7 @@ namespace ASyncLib
             }
 
             // Phase 2: using invertible bloom filter
-            var ibf = new IBF(2 * _d0, BloomFilter.DefaultHashFuncs(3));
-            //var hFunc = new MurmurHash3_x64_128();
+            var ibf = new IBF(_d0, BloomFilter.DefaultHashFuncs(3));
             foreach (var item in clientDic)
             {
                 var id = KeyValToId(item);
@@ -93,6 +92,11 @@ namespace ASyncLib
             }
 
             Serializer.Serialize(ibfFile, ibf);
+        }
+
+        public static void ClientGenIBF<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, int _d0, Stream ibfFile)
+        {
+
         }
 
         public static void ServerGenPatch2FromIBF<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> serverDic, Func<TKey, TValue> readingAct,
