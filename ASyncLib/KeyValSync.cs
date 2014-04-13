@@ -77,12 +77,14 @@ namespace ASyncLib
             IEnumerable<KeyValuePair<TKey, TValue>> patchItems, int _d0, Stream ibfFile)
         {
             // Apply patch 1.
-            foreach (var item in patchItems)
-            {
-                patchingAct(item);
-            }
-
+            ClientApplyPatch(patchingAct, patchItems);
+            
             // Phase 2: using invertible bloom filter
+            ClientGenIBF(clientDic, _d0, ibfFile);
+        }
+
+        public static void ClientGenIBF<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, int _d0, Stream ibfFile)
+        {
             var ibf = new IBF(_d0, BloomFilter.DefaultHashFuncs(3));
             foreach (var item in clientDic)
             {
@@ -92,11 +94,6 @@ namespace ASyncLib
             }
 
             Serializer.Serialize(ibfFile, ibf);
-        }
-
-        public static void ClientGenIBF<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, int _d0, Stream ibfFile)
-        {
-
         }
 
         public static void ServerGenPatch2FromIBF<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> serverDic, Func<TKey, TValue> readingAct,
@@ -138,12 +135,12 @@ namespace ASyncLib
             Serializer.Serialize(patch2File, patchDic);
         }
 
-        public static void ClientPatch<TKey, TValue>(Action<KeyValuePair<TKey, TValue>> patchingAct, Stream patch2File)
+        public static void ClientApplyPatch<TKey, TValue>(Action<KeyValuePair<TKey, TValue>> patchingAct, IEnumerable<KeyValuePair<TKey, TValue>> patchItems)
         {
-            var patchDic = new Dictionary<TKey, TValue>();
-            patchDic = Serializer.Deserialize<Dictionary<TKey, TValue>>(patch2File);
+            //var patchDic = new Dictionary<TKey, TValue>();
+            //patchDic = Serializer.Deserialize<Dictionary<TKey, TValue>>(patch2File);
 
-            foreach (var item in patchDic)
+            foreach (var item in patchItems)
             {
                 patchingAct(item);
             }

@@ -1,4 +1,5 @@
 ﻿using ASyncLib;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,7 +43,8 @@ namespace ASyncStressTest
             _ibffile.Position = 0;
             KeyValSync.ServerGenPatch2FromIBF(serverDic, key => serverDic[key], _ibffile, _p2file);
             _p2file.Position = 0;
-            KeyValSync.ClientPatch<string, string>(currItem => clientDic[currItem.Key] = currItem.Value, _p2file);
+            var patchDic = Serializer.Deserialize<Dictionary<string, string>>(_p2file);
+            KeyValSync.ClientApplyPatch<string, string>(currItem => clientDic[currItem.Key] = currItem.Value, patchDic);
 
             if (!KeyValSync.AreTheSame(clientDic, serverDic))
             {
