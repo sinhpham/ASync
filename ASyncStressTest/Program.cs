@@ -12,7 +12,7 @@ namespace ASyncStressTest
     {
         static void Main(string[] args)
         {
-            StressTestIBFSync(2000000);
+            StressTestIBFSync(20000);
         }
 
         static void StressTestIBFSync(int size)
@@ -43,6 +43,11 @@ namespace ASyncStressTest
             KeyValSync.ServerGenPatch2FromIBF(serverDic, key => serverDic[key], _ibffile, _p2file);
             _p2file.Position = 0;
             KeyValSync.ClientPatch<string, string>(currItem => clientDic[currItem.Key] = currItem.Value, _p2file);
+
+            if (!KeyValSync.AreTheSame(clientDic, serverDic))
+            {
+                throw new InvalidDataException();
+            }
         }
     }
 }
