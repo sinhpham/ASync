@@ -130,6 +130,8 @@ namespace ASyncLib
                     continue;
                 }
                 var currId = _idSum[currIdx];
+                var currHashVal = _hashSum[currIdx];
+
                 var currCount = _count[currIdx];
                 if (currCount > 0)
                 {
@@ -143,11 +145,9 @@ namespace ASyncLib
                 foreach (var h in _hFuncs)
                 {
                     var idx = CalcIdx(currId, h);
-                    var hVal = CalcHcVal(currId);
-
                     _count[idx] -= currCount;
                     _idSum[idx] ^= currId;
-                    _hashSum[idx] ^= hVal;
+                    _hashSum[idx] ^= currHashVal;
 
                     if (IsPure(idx))
                     {

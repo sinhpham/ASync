@@ -15,7 +15,7 @@ namespace ASyncStressTest
         static void Main(string[] args)
         {
             var sArr = new int[] { 2000000, 200000, 20000 };
-            var changedArr = new int[] {  50, 20, 4 };
+            var changedArr = new int[] {  16, 4 };
 
             foreach (var size in sArr)
             {
