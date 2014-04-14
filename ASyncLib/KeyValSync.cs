@@ -10,6 +10,8 @@ namespace ASyncLib
 {
     public class KeyValSync
     {
+        const int HashNumForIBF = 3;
+
         public static void ClientGenBfFile<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, int clientNumOfItems, Stream clientBFFile)
         {
             // Using 8 bits per item.
@@ -74,18 +76,19 @@ namespace ASyncLib
         }
 
         public static void ClientPatchAndGenIBFFile<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, Action<KeyValuePair<TKey, TValue>> patchingAct,
-            IEnumerable<KeyValuePair<TKey, TValue>> patchItems, int _d0, Stream ibfFile)
+            IEnumerable<KeyValuePair<TKey, TValue>> patchItems, int estimatedDiff, Stream ibfFile)
         {
             // Apply patch 1.
             ClientApplyPatch(patchingAct, patchItems);
             
             // Phase 2: using invertible bloom filter
-            ClientGenIBF(clientDic, _d0, ibfFile);
+            ClientGenIBF(clientDic, estimatedDiff, ibfFile);
         }
 
-        public static void ClientGenIBF<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, int _d0, Stream ibfFile)
+        public static void ClientGenIBF<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, int estimatedDiff, Stream ibfFile)
         {
-            var ibf = new IBF(_d0, BloomFilter.DefaultHashFuncs(3));
+            // We need approx 1.5 * d0 for ibf to decode, use 2 here.
+            var ibf = new IBF(estimatedDiff * 2, BloomFilter.DefaultHashFuncs(HashNumForIBF));
             foreach (var item in clientDic)
             {
                 var id = KeyValToId(item);
@@ -99,13 +102,11 @@ namespace ASyncLib
         public static void ServerGenPatch2FromIBF<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> serverDic, Func<TKey, TValue> readingAct,
             Stream clientIBFFile, Stream patch2File)
         {
-            IBF clientIBF;
+            var clientIBF = Serializer.Deserialize<IBF>(clientIBFFile);
 
-            clientIBF = Serializer.Deserialize<IBF>(clientIBFFile);
+            clientIBF.SetHashFunctions(BloomFilter.DefaultHashFuncs(HashNumForIBF));
 
-            clientIBF.SetHashFunctions(BloomFilter.DefaultHashFuncs(3));
-
-            var serverIBF = new IBF(clientIBF.Size, BloomFilter.DefaultHashFuncs(3));
+            var serverIBF = new IBF(clientIBF.Size, BloomFilter.DefaultHashFuncs(HashNumForIBF));
             var idToKey = new Dictionary<long, TKey>();
 
             foreach (var item in serverDic)
@@ -130,7 +131,6 @@ namespace ASyncLib
                 var key = idToKey[hValue];
                 patchDic[key] = readingAct(key);
             }
-
 
             Serializer.Serialize(patch2File, patchDic);
         }
