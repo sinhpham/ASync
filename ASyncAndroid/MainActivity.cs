@@ -12,6 +12,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Java.Interop;
 using System.Diagnostics;
+using ProtoBuf;
 
 namespace ASyncAndroid
 {
@@ -170,7 +171,8 @@ namespace ASyncAndroid
                 var docFolder = DbManager.AppDir;
                 using (var patch2File = File.OpenRead(Path.Combine(docFolder, "patch2file.dat")))
                 {
-                    KeyValSync.ClientPatch<string, string>(currItem => _dicDb[currItem.Key] = currItem.Value, patch2File);
+                    var patchDic = Serializer.Deserialize<Dictionary<string, string>>(patch2File);
+                    KeyValSync.ClientApplyPatch<string, string>(currItem => _dicDb[currItem.Key] = currItem.Value, patchDic);
                 }
             });
             Console.WriteLine("Done patch 2");
@@ -266,7 +268,8 @@ namespace ASyncAndroid
                 var docFolder = DbManager.AppDir;
                 using (var patch2File = File.OpenRead(Path.Combine(docFolder, "patch2file.dat")))
                 {
-                    KeyValSync.ClientPatch<string, string>(currItem => trans.Insert(DbManager.DefaultTableName, currItem.Key, currItem.Value), patch2File);
+                    var patchDic = Serializer.Deserialize<Dictionary<string, string>>(patch2File);
+                    KeyValSync.ClientApplyPatch<string, string>(currItem => trans.Insert(DbManager.DefaultTableName, currItem.Key, currItem.Value), patchDic);
                 }
                 trans.Commit();
             }
