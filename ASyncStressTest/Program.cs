@@ -2,6 +2,7 @@
 using ProtoBuf;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,13 +14,27 @@ namespace ASyncStressTest
     {
         static void Main(string[] args)
         {
-            StressTestIBFSync(20000);
+            var sArr = new int[] { 2000000, 200000, 20000 };
+            var changedArr = new int[] { 50, 20, 4 };
+
+            foreach (var size in sArr)
+            {
+                foreach (var changedPer in changedArr)
+                {
+                    Console.WriteLine("Testing ibf sync with {0} size and {1} percent change", size, changedPer);
+                    var sw = new Stopwatch();
+                    sw.Start();
+                    StressTestIBFSync(size, changedPer);
+                    sw.Stop();
+                    Console.WriteLine("Done in {0}", sw.Elapsed);
+                }
+            }
         }
 
-        static void StressTestIBFSync(int size)
+        static void StressTestIBFSync(int size, int changedPer)
         {
             var clientDic = DataGen.Gen(size, 0).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
-            var serverDic = DataGen.Gen(size, 50).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+            var serverDic = DataGen.Gen(size, changedPer).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
 
             var _bffile = new MemoryStream();
             var _p1file = new MemoryStream();
