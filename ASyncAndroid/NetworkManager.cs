@@ -7,6 +7,8 @@ namespace ASyncAndroid
 {
     public static class NetworkManager
     {
+        public static string FtpServer = "ftp://10.81.4.61/";
+
         public static async Task FtpUpload(string url, Stream fileStream, string fileName)
         {
             // Get the object used to communicate with the server.

@@ -108,7 +108,7 @@ namespace ASyncAndroid
             //RunFunctionTimedAsync(NetworkManager.FtpDownload("ftp://10.81.4.120/" + serverFile, localFile));
             var sw = new Stopwatch();
             sw.Start();
-            await NetworkManager.FtpDownload("ftp://10.81.4.120/" + serverFile, localFile);
+            await NetworkManager.FtpDownload(NetworkManager.FtpServer + serverFile, localFile);
             sw.Stop();
 
             Console.WriteLine("Done downloading in {0}", sw.Elapsed);
@@ -153,7 +153,7 @@ namespace ASyncAndroid
             sw.Start();
             using (var file = File.OpenRead(Path.Combine(docFolder, fileName)))
             {
-                await NetworkManager.FtpUpload("ftp://10.81.4.120", file, fileName);
+                await NetworkManager.FtpUpload(NetworkManager.FtpServer, file, fileName);
             }
             sw.Stop();
 
