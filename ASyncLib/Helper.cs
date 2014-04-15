@@ -50,5 +50,37 @@ namespace ASyncLib
                 yield return line;
             }
         }
+
+        public static string BFFileName
+        {
+            get
+            {
+                return "bffile.dat";
+            }
+        }
+
+        public static string P1FileName
+        {
+            get
+            {
+                return "patch1.dat";
+            }
+        }
+
+        public static string IBFFileName
+        {
+            get
+            {
+                return "ibffile.dat";
+            }
+        }
+
+        public static string P2FileName
+        {
+            get
+            {
+                return "patch2.dat";
+            }
+        }
     }
 }

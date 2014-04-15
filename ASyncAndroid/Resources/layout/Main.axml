@@ -15,44 +15,56 @@
         android:id="@+id/myButton"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="Gen db"
+        android:text="1 - Gen db"
         android:onClick="GenDBClicked" />
+    <Button
+        android:text="2 - Gen bloom filter file from db"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/genBloomBtn"
+        android:onClick="GenBFClicked" />
+    <Button
+        android:text="3 - Upload bloom filter to server"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/uploadBfBtn"
+        android:onClick="UploadBfClicked" />
+    <Button
+        android:text="5 - Download patch 1 file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/downloadP1Btn"
+        android:onClick="DownloadP1Clicked" />
+    <Button
+        android:text="6 - Apply patch 1 and gen ibf"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/patch1Btn"
+        android:onClick="Patch1Clicked" />
+    <Button
+        android:text="7 - Upload ibf"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/uploadBtn"
+        android:onClick="UploadIbfClicked" />
+    <Button
+        android:text="9 - Download patch 2 file"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/downloadP2Btn"
+        android:onClick="DownloadP2Clicked" />
+    <Button
+        android:text="10 - Apply patch 2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/patch2Btn"
+        android:onClick="Patch2Clicked" />
     <Button
         android:text="Check db"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/checkBtn"
         android:onClick="CheckDbClicked" />
-    <Button
-        android:text="Gen bloom filter file from db"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/genBloomBtn"
-        android:onClick="GenBFClicked" />
-    <Button
-        android:text="Download file"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/downloadBtn"
-        android:onClick="DownloadClicked" />
-    <Button
-        android:text="Apply patch 1 and gen ibf"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/patch1Btn"
-        android:onClick="Patch1Clicked" />
-    <Button
-        android:text="Upload ibf"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/uploadBtn"
-        android:onClick="UploadClicked" />
-    <Button
-        android:text="Apply patch 2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/patch2Btn"
-        android:onClick="Patch2Clicked" />
     <Button
         android:text="Dispose db"
         android:layout_width="match_parent"

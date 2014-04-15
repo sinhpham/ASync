@@ -87,7 +87,7 @@ namespace ASyncAndroid
             RunFunctionTimed(() =>
             {
                 var docFolder = DbManager.AppDir;
-                using (var bffile = File.OpenWrite(Path.Combine(docFolder, "bffile.dat")))
+                using (var bffile = File.OpenWrite(Path.Combine(docFolder, Helper.BFFileName)))
                 {
                     KeyValSync.ClientGenBfFile(_dicDb, _dicDb.Count, bffile);
                 }
@@ -96,22 +96,32 @@ namespace ASyncAndroid
         }
 
         [Export]
-        public async void DownloadClicked(View v)
+        public async void UploadBfClicked(View v)
         {
-            Console.WriteLine("Download clicked", ((Button)v).Text);
-            var tf1 = FindViewById<EditText>(Resource.Id.editText1);
-            var tf2 = FindViewById<EditText>(Resource.Id.editText2);
+            Console.WriteLine("Uploading bf file");
 
-            var serverFile = tf1.Text;
-            var localFile = tf2.Text;
-
-            //RunFunctionTimedAsync(NetworkManager.FtpDownload("ftp://10.81.4.120/" + serverFile, localFile));
             var sw = new Stopwatch();
             sw.Start();
-            await NetworkManager.FtpDownload(NetworkManager.FtpServer + serverFile, localFile);
+            using (var file = File.OpenRead(Path.Combine(DbManager.AppDir, Helper.BFFileName)))
+            {
+                await NetworkManager.FtpUpload(NetworkManager.FtpServer, file, Helper.BFFileName);
+            }
             sw.Stop();
 
-            Console.WriteLine("Done downloading in {0}", sw.Elapsed);
+            Console.WriteLine("Done uploading bf in {0}", sw.Elapsed);
+        }
+
+        [Export]
+        public async void DownloadP1Clicked(View v)
+        {
+            Console.WriteLine("Download p1 clicked", ((Button)v).Text);
+
+            var sw = new Stopwatch();
+            sw.Start();
+            await NetworkManager.FtpDownload(NetworkManager.FtpServer + Helper.P1FileName, Helper.P1FileName);
+            sw.Stop();
+
+            Console.WriteLine("Done downloading p1 in {0}", sw.Elapsed);
         }
 
         [Export]
@@ -122,9 +132,9 @@ namespace ASyncAndroid
             RunFunctionTimed(() =>
             {
                 var docFolder = DbManager.AppDir;
-                using (var patch1File = File.OpenText(Path.Combine(docFolder, "patch1file.dat")))
+                using (var patch1File = File.OpenText(Path.Combine(docFolder, Helper.P1FileName)))
                 {
-                    using (var ibffile = File.OpenWrite(Path.Combine(docFolder, "ibffile.dat")))
+                    using (var ibffile = File.OpenWrite(Path.Combine(docFolder, Helper.IBFFileName)))
                     {
                         var d0 = int.Parse(patch1File.ReadLine());
                         var patchItems = Helper.ReadLinesFromTextStream(patch1File).Select(str =>
@@ -141,23 +151,32 @@ namespace ASyncAndroid
         }
 
         [Export]
-        public async void UploadClicked(View v)
+        public async void UploadIbfClicked(View v)
         {
-            Console.WriteLine("Upload clicked");
-
-            var tf1 = FindViewById<EditText>(Resource.Id.editText1);
-            var fileName = tf1.Text;
-            var docFolder = DbManager.AppDir;
+            Console.WriteLine("Uploading ibf file");
 
             var sw = new Stopwatch();
             sw.Start();
-            using (var file = File.OpenRead(Path.Combine(docFolder, fileName)))
+            using (var file = File.OpenRead(Path.Combine(DbManager.AppDir, Helper.IBFFileName)))
             {
-                await NetworkManager.FtpUpload(NetworkManager.FtpServer, file, fileName);
+                await NetworkManager.FtpUpload(NetworkManager.FtpServer, file, Helper.IBFFileName);
             }
             sw.Stop();
 
-            Console.WriteLine("Done uploading in {0}", sw.Elapsed);
+            Console.WriteLine("Done uploading ibf in {0}", sw.Elapsed);
+        }
+
+        [Export]
+        public async void DownloadP2Clicked(View v)
+        {
+            Console.WriteLine("Download p2 clicked", ((Button)v).Text);
+
+            var sw = new Stopwatch();
+            sw.Start();
+            await NetworkManager.FtpDownload(NetworkManager.FtpServer + Helper.P2FileName, Helper.P2FileName);
+            sw.Stop();
+
+            Console.WriteLine("Done downloading p2 in {0}", sw.Elapsed);
         }
 
         [Export]
