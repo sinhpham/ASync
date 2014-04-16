@@ -188,7 +188,7 @@ namespace ASyncAndroid
             RunFunctionTimed(() =>
             {
                 var docFolder = DbManager.AppDir;
-                using (var patch2File = File.OpenRead(Path.Combine(docFolder, "patch2file.dat")))
+                using (var patch2File = File.OpenRead(Path.Combine(docFolder, Helper.P2FileName)))
                 {
                     var patchDic = Serializer.Deserialize<Dictionary<string, string>>(patch2File);
                     KeyValSync.ClientApplyPatch<string, string>(currItem => _dicDb[currItem.Key] = currItem.Value, patchDic);
