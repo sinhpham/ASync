@@ -1,0 +1,11 @@
+﻿<Window x:Class="ASyncWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <Button Content="Gen db" HorizontalAlignment="Left" Margin="48,43,0,0" VerticalAlignment="Top" Width="157" Click="GendbClicked"/>
+        <Button Content="4 - Gen p1" HorizontalAlignment="Left" Margin="48,68,0,0" VerticalAlignment="Top" Width="157" Click="GenP1Clicked"/>
+        <Button Content="8 - Gen p2" HorizontalAlignment="Left" Margin="48,93,0,0" VerticalAlignment="Top" Width="157" Click="GenP2Clicked"/>
+
+    </Grid>
+</Window>
