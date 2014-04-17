@@ -87,7 +87,7 @@ namespace ASyncAndroid
             RunFunctionTimed(() =>
             {
                 var docFolder = DbManager.AppDir;
-                using (var bffile = File.OpenWrite(Path.Combine(docFolder, Helper.BFFileName)))
+                using (var bffile = File.Create(Path.Combine(docFolder, Helper.BFFileName)))
                 {
                     KeyValSync.ClientGenBfFile(_dicDb, _dicDb.Count, bffile);
                 }
@@ -134,7 +134,7 @@ namespace ASyncAndroid
                 var docFolder = DbManager.AppDir;
                 using (var patch1File = File.OpenText(Path.Combine(docFolder, Helper.P1FileName)))
                 {
-                    using (var ibffile = File.OpenWrite(Path.Combine(docFolder, Helper.IBFFileName)))
+                    using (var ibffile = File.Create(Path.Combine(docFolder, Helper.IBFFileName)))
                     {
                         var d0 = int.Parse(patch1File.ReadLine());
                         var patchItems = Helper.ReadLinesFromTextStream(patch1File).Select(str =>
@@ -246,7 +246,7 @@ namespace ASyncAndroid
                 trans.Technical_SetTable_OverwriteIsNotAllowed(DbManager.DefaultTableName);
                 var clientDic = trans.SelectForward<string, string>(DbManager.DefaultTableName).Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
                 var docFolder = DbManager.AppDir;
-                using (var bffile = File.OpenWrite(Path.Combine(docFolder, "bffile.dat")))
+                using (var bffile = File.Create(Path.Combine(docFolder, "bffile.dat")))
                 {
                     KeyValSync.ClientGenBfFile(clientDic, (int)trans.Count(DbManager.DefaultTableName), bffile);
                 }
@@ -263,7 +263,7 @@ namespace ASyncAndroid
                 var docFolder = DbManager.AppDir;
                 using (var patch1File = File.OpenText(Path.Combine(docFolder, "patch1file.dat")))
                 {
-                    using (var ibffile = File.OpenWrite(Path.Combine(docFolder, "ibffile.dat")))
+                    using (var ibffile = File.Create(Path.Combine(docFolder, "ibffile.dat")))
                     {
                         var d0 = int.Parse(patch1File.ReadLine());
                         var patchItems = Helper.ReadLinesFromTextStream(patch1File).Select(str =>
