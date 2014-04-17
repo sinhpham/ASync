@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using ASyncLib;
 using System.IO;
 using System.Diagnostics;
+using ProtoBuf;
 
 namespace ASyncWPF
 {
@@ -44,6 +45,8 @@ namespace ASyncWPF
             Task.Factory.StartNew(() => RunFunctionTimed(() => GenPatch2File()));
         }
 
+        static Dictionary<string, string> _serverDic = new Dictionary<string, string>();
+
         static string _dataDir;
         static string DataDir
         {
@@ -57,31 +60,20 @@ namespace ASyncWPF
         {
             Console.WriteLine("Begin gen data");
             // Gen data for server
-            using (var trans = DbManager.Engine.GetTransaction())
+            foreach (var item in DataGen.Gen(size, changedPercent))
             {
-                trans.Technical_SetTable_OverwriteIsNotAllowed(DbManager.DefaultTableName);
-                foreach (var item in DataGen.Gen(size, changedPercent))
-                {
-                    trans.Insert(DbManager.DefaultTableName, item.Key, item.Value);
-                }
-                trans.Commit();
+                _serverDic.Add(item.Key, item.Value);
             }
-            //DbManager.Dispose();
         }
 
         private static void GenPatch1File()
         {
             Console.WriteLine("Begin gen p1");
-            using (var trans = DbManager.Engine.GetTransaction())
+            using (var bffile = File.OpenRead(System.IO.Path.Combine(DataDir, Helper.BFFileName)))
             {
-                trans.Technical_SetTable_OverwriteIsNotAllowed(DbManager.DefaultTableName);
-                var serverDic = trans.SelectForward<string, string>(DbManager.DefaultTableName).Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
-                using (var bffile = File.OpenRead(System.IO.Path.Combine(DataDir, Helper.BFFileName)))
+                using (var pfile = File.Create(System.IO.Path.Combine(DataDir, Helper.P1FileName)))
                 {
-                    using (var pfile = File.OpenWrite(System.IO.Path.Combine(DataDir, Helper.P1FileName)))
-                    {
-                        KeyValSync.ServerGenPatch1File(serverDic, (int)trans.Count(DbManager.DefaultTableName), bffile, pfile);
-                    }
+                    KeyValSync.ServerGenPatch1File(_serverDic, _serverDic.Count, bffile, pfile);
                 }
             }
         }
@@ -89,28 +81,17 @@ namespace ASyncWPF
         private static void GenPatch2File()
         {
             Console.WriteLine("Begin gen p2");
-            using (var trans = DbManager.Engine.GetTransaction())
-            {
-                trans.Technical_SetTable_OverwriteIsNotAllowed(DbManager.DefaultTableName);
-                var serverDic = trans.SelectForward<string, string>(DbManager.DefaultTableName).Select(t => new KeyValuePair<string, string>(t.Key, t.Value));
 
-                using (var ibfFile = File.OpenRead(System.IO.Path.Combine(DataDir, Helper.IBFFileName)))
+            using (var ibfFile = File.OpenRead(System.IO.Path.Combine(DataDir, Helper.IBFFileName)))
+            {
+                using (var p2File = File.Create(System.IO.Path.Combine(DataDir, Helper.P2FileName)))
                 {
-                    using (var p2File = File.OpenWrite(System.IO.Path.Combine(DataDir, Helper.P2FileName)))
+                    KeyValSync.ServerGenPatch2FromIBF(_serverDic, key =>
                     {
-                        KeyValSync.ServerGenPatch2FromIBF(serverDic, key =>
-                        {
-                            var v = trans.Select<string, string>(DbManager.DefaultTableName, key);
-                            if (!v.Exists)
-                            {
-                                throw new InvalidDataException();
-                            }
-                            return v.Value;
-                        }, ibfFile, p2File);
-                    }
+                        return _serverDic[key];
+                    }, ibfFile, p2File);
                 }
             }
-            //DbManager.Dispose();
         }
 
         private static void RunFunctionTimed(Action act)
@@ -120,6 +101,14 @@ namespace ASyncWPF
             act();
             sw.Stop();
             Console.WriteLine("Done in {0}", sw.Elapsed);
+        }
+
+        private void SaveDbClicked(object sender, RoutedEventArgs e)
+        {
+            using (var f = File.Create("db.dat"))
+            {
+                Serializer.Serialize(f, _serverDic);
+            }
         }
     }
 }
