@@ -7,6 +7,8 @@
         <Button Content="4 - Gen p1" HorizontalAlignment="Left" Margin="48,68,0,0" VerticalAlignment="Top" Width="157" Click="GenP1Clicked"/>
         <Button Content="8 - Gen p2" HorizontalAlignment="Left" Margin="48,93,0,0" VerticalAlignment="Top" Width="157" Click="GenP2Clicked"/>
         <Button Content="Save db" HorizontalAlignment="Left" Margin="48,118,0,0" VerticalAlignment="Top" Width="157" Click="SaveDbClicked"/>
+        <TextBox x:Name="sizeTb" HorizontalAlignment="Left" Height="23" Margin="210,44,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" ToolTip="size"/>
+        <TextBox x:Name="changedTb" HorizontalAlignment="Left" Height="23" Margin="335,44,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" ToolTip="changed"/>
 
     </Grid>
 </Window>

@@ -32,7 +32,10 @@ namespace ASyncWPF
 
         private void GendbClicked(object sender, RoutedEventArgs e)
         {
-            Task.Factory.StartNew(() => RunFunctionTimed(() => GenServerData(1000000, 50)));
+            var size = int.Parse(sizeTb.Text);
+            var changedPer = int.Parse(changedTb.Text);
+
+            Task.Factory.StartNew(() => RunFunctionTimed(() => GenServerData(size, changedPer)));
         }
 
         private void GenP1Clicked(object sender, RoutedEventArgs e)
@@ -56,17 +59,18 @@ namespace ASyncWPF
             }
         }
 
-        private static void GenServerData(int size, int changedPercent)
+        private void GenServerData(int size, int changedPer)
         {
-            Console.WriteLine("Begin gen data");
+            _serverDic.Clear();
+            Console.WriteLine("Begin gen data, size = {0}, changedPer = {1}", size, changedPer);
             // Gen data for server
-            foreach (var item in DataGen.Gen(size, changedPercent))
+            foreach (var item in DataGen.Gen(size, changedPer))
             {
                 _serverDic.Add(item.Key, item.Value);
             }
         }
 
-        private static void GenPatch1File()
+        private void GenPatch1File()
         {
             Console.WriteLine("Begin gen p1");
             using (var bffile = File.OpenRead(System.IO.Path.Combine(DataDir, Helper.BFFileName)))
@@ -78,7 +82,7 @@ namespace ASyncWPF
             }
         }
 
-        private static void GenPatch2File()
+        private void GenPatch2File()
         {
             Console.WriteLine("Begin gen p2");
 
@@ -94,7 +98,7 @@ namespace ASyncWPF
             }
         }
 
-        private static void RunFunctionTimed(Action act)
+        private void RunFunctionTimed(Action act)
         {
             var sw = new Stopwatch();
             sw.Start();
@@ -105,10 +109,14 @@ namespace ASyncWPF
 
         private void SaveDbClicked(object sender, RoutedEventArgs e)
         {
-            using (var f = File.Create("db.dat"))
+            Console.WriteLine("Saving db");
+            RunFunctionTimed(() =>
             {
-                Serializer.Serialize(f, _serverDic);
-            }
+                using (var f = File.Create("db.dat"))
+                {
+                    Serializer.Serialize(f, _serverDic);
+                }
+            });
         }
     }
 }
