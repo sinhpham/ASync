@@ -11,12 +11,12 @@ namespace ASyncLib
     public class KeyValSync
     {
         const int HashNumForIBF = 3;
+        static IHashFunc hFunc = new MurmurHash3_x86_32();
 
         public static void ClientGenBfFile<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, int clientNumOfItems, Stream clientBFFile)
         {
             // Using 8 bits per item.
             var bf = new BloomFilter(clientNumOfItems * 8, BloomFilter.DefaultHashFuncs());
-            var hFunc = new MurmurHash3_x86_32();
 
             // Client side.
             foreach (var item in clientDic)
@@ -36,10 +36,7 @@ namespace ASyncLib
 
         public static void ServerGenPatch1File<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> serverDic, int serverNumOfItems, Stream clientBFFile, Stream patch1File)
         {
-            var hFunc = new MurmurHash3_x86_32();
-            BloomFilter bf;
-
-            bf = Serializer.Deserialize<BloomFilter>(clientBFFile);
+            var bf = Serializer.Deserialize<BloomFilter>(clientBFFile);
 
             bf.SetHashFunctions(BloomFilter.DefaultHashFuncs());
 
@@ -61,8 +58,8 @@ namespace ASyncLib
                 }
             }
 
-            var estimatedDo = Helper.EstimateD0(bf.Count, serverNumOfItems, hitNum, bf) + 20;
-            var remainingD0 = estimatedDo - patchDic.Count;
+            var estimatedD0 = Helper.EstimateD0(bf.Count, serverNumOfItems, hitNum, bf) + 20;
+            var remainingD0 = estimatedD0 - patchDic.Count;
 
             using (var sw = new StreamWriter(patch1File, Encoding.UTF8, 4096, true))
             {
@@ -72,7 +69,6 @@ namespace ASyncLib
                     sw.WriteLine(string.Format("{0} {1}", item.Key, item.Value));
                 }
             }
-            //Serializer.Serialize(patch1File, Tuple.Create(remainingD0, patchDic));
         }
 
         public static void ClientPatchAndGenIBFFile<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> clientDic, Action<KeyValuePair<TKey, TValue>> patchingAct,

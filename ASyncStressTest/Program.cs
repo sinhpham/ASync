@@ -14,8 +14,8 @@ namespace ASyncStressTest
     {
         static void Main(string[] args)
         {
-            var sArr = new int[] { 2000000, 200000, 20000 };
-            var changedArr = new int[] {  16, 4 };
+            var sArr = new int[] { 1000000, 500000, 100000};
+            var changedArr = new int[] {  50, 20 , 4 };
 
             foreach (var size in sArr)
             {
@@ -24,9 +24,9 @@ namespace ASyncStressTest
                     Console.WriteLine("Testing ibf sync with {0} size and {1} percent change", size, changedPer);
                     var sw = new Stopwatch();
                     sw.Start();
-                    StressTestIBFWithoutEstimator(size, changedPer);
+                    var diff = StressTestBFEstimator(size, changedPer);
                     sw.Stop();
-                    Console.WriteLine("Done in {0}", sw.Elapsed);
+                    Console.WriteLine("Done in {0}, diff = {1}", sw.Elapsed, diff);
                 }
             }
         }
@@ -88,6 +88,46 @@ namespace ASyncStressTest
             {
                 throw new InvalidDataException();
             }
+        }
+
+        static double StressTestBFEstimator(int size, int changedPer)
+        {
+            var clientDic = DataGen.Gen(size, 0).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+            var serverDic = DataGen.Gen(size, changedPer).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+
+            var _bffile = new MemoryStream();
+            
+
+            KeyValSync.ClientGenBfFile(clientDic, clientDic.Count, _bffile);
+            _bffile.Position = 0;
+
+            var bf = Serializer.Deserialize<BloomFilter>(_bffile);
+
+            bf.SetHashFunctions(BloomFilter.DefaultHashFuncs());
+
+            var hitNum = 0;
+            var hFunc = new MurmurHash3_x86_32();
+            
+            foreach (var item in serverDic)
+            {
+                var block = item.Key + "-" + item.Value;
+                var bBlock = Helper.GetBytes(block);
+
+                var hv = hFunc.ComputeHash(bBlock);
+                if (!bf.Contains(hv))
+                {
+                    
+                }
+                else
+                {
+                    hitNum++;
+                }
+            }
+
+            var estimatedDo = Helper.EstimateD0(bf.Count, serverDic.Count, hitNum, bf) + 20;
+            var realD0 = changedPer * size / 100 * 1.5;
+            var diff = (double)estimatedDo / realD0;
+            return diff;
         }
     }
 }

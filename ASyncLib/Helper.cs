@@ -11,7 +11,6 @@ namespace ASyncLib
     {
         public static int EstimateD0(int sizeA, int sizeB, int quasiIntersectionN0, BloomFilter bf)
         {
-
             var div = 1 - bf.FalsePositive;
 
             var d = sizeA - sizeB + 2 * (sizeB - quasiIntersectionN0) / div;
