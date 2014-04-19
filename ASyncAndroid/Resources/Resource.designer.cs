@@ -81,6 +81,9 @@ namespace ASyncAndroid
 			// aapt resource value: 0x7f050003
 			public const int genBloomBtn = 2131034115;
 			
+			// aapt resource value: 0x7f05000c
+			public const int genibf = 2131034124;
+			
 			// aapt resource value: 0x7f050002
 			public const int myButton = 2131034114;
 			

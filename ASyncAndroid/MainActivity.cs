@@ -27,7 +27,7 @@ namespace ASyncAndroid
             SetContentView(Resource.Layout.Main);
         }
 
-        Dictionary<string, string> _dicDb = new Dictionary<string, string>();
+        Dictionary<string, string> _clientDic = new Dictionary<string, string>();
 
         [Export]
         public void GenDBClicked(View v)
@@ -44,7 +44,7 @@ namespace ASyncAndroid
             {
                 foreach (var item in DataGen.Gen(size,changedPer))
                 {
-                    _dicDb.Add(item.Key, item.Value);
+                    _clientDic.Add(item.Key, item.Value);
                 }
             });
             Console.WriteLine("Done gen db");
@@ -64,13 +64,14 @@ namespace ASyncAndroid
             {
                 foreach (var item in DataGen.Gen(size, changedPer))
                 {
-                    var inDbVal = _dicDb[item.Key];
+                    var inDbVal = _clientDic[item.Key];
                     if (inDbVal != item.Value)
                     {
                         throw new InvalidDataException();
                     }
                 }
-                if (_dicDb.Count != size + changedPer / 2 * size / 100) {
+                if (_clientDic.Count != size + changedPer / 2 * size / 100)
+                {
                     throw new InvalidDataException();
                 }
             });
@@ -89,7 +90,7 @@ namespace ASyncAndroid
                 var docFolder = DbManager.AppDir;
                 using (var bffile = File.Create(Path.Combine(docFolder, Helper.BFFileName)))
                 {
-                    KeyValSync.ClientGenBfFile(_dicDb, _dicDb.Count, bffile);
+                    KeyValSync.ClientGenBfFile(_clientDic, _clientDic.Count, bffile);
                 }
             });
             Console.WriteLine("Done gen bf");
@@ -142,7 +143,7 @@ namespace ASyncAndroid
                             var strArr = str.Split(' ');
                             return new KeyValuePair<string, string>(strArr[0], strArr[1]);
                         });
-                        KeyValSync.ClientPatchAndGenIBFFile(_dicDb, currItem => _dicDb[currItem.Key] = currItem.Value, patchItems, d0, ibffile);
+                        KeyValSync.ClientPatchAndGenIBFFile(_clientDic, currItem => _clientDic[currItem.Key] = currItem.Value, patchItems, d0, ibffile);
                     }
                 }
             });
@@ -191,7 +192,7 @@ namespace ASyncAndroid
                 using (var patch2File = File.OpenRead(Path.Combine(docFolder, Helper.P2FileName)))
                 {
                     var patchDic = Serializer.Deserialize<Dictionary<string, string>>(patch2File);
-                    KeyValSync.ClientApplyPatch<string, string>(currItem => _dicDb[currItem.Key] = currItem.Value, patchDic);
+                    KeyValSync.ClientApplyPatch<string, string>(currItem => _clientDic[currItem.Key] = currItem.Value, patchDic);
                 }
             });
             Console.WriteLine("Done patch 2");
@@ -203,6 +204,31 @@ namespace ASyncAndroid
             Console.WriteLine("Dispose db clicked");
             DbManager.Dispose();
             Console.WriteLine("Done disposing db");
+        }
+
+        [Export]
+        public void GenIbfFromOriClicked(View v)
+        {
+            Console.WriteLine("Gen ibf from original client dic clicked");
+            var tf1 = FindViewById<EditText>(Resource.Id.editText1);
+            var tf2 = FindViewById<EditText>(Resource.Id.editText2);
+
+            var size = int.Parse(tf1.Text);
+            var changedPer = int.Parse(tf2.Text);
+
+            var diffSize = changedPer * size / 100;
+
+            RunFunctionTimed(() =>
+            {
+                var docFolder = DbManager.AppDir;
+                using (var ibffile = File.Create(Path.Combine(docFolder, Helper.IBFFileName)))
+                {
+
+                    KeyValSync.ClientGenIBF(_clientDic, diffSize, ibffile);
+                }
+            });
+
+            Console.WriteLine("Done");
         }
 
         private static void GenClientData(int size, int changedPer)

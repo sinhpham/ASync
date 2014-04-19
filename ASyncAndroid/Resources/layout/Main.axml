@@ -71,4 +71,10 @@
         android:layout_height="wrap_content"
         android:id="@+id/button1"
         android:onClick="DisposeDbClicked" />
+    <Button
+        android:text="Gen ibf from original client dic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/genibf"
+        android:onClick="GenIbfFromOriClicked" />
 </LinearLayout>
