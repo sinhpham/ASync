@@ -29,11 +29,11 @@ namespace ASyncLib
         [ProtoMember(1)]
         List<IBF> _ibfList;
 
-        public void SetHashFunctions(ICollection<IHashFunc> hashFunctions)
+        public void SetHashFunctions()
         {
             foreach (var ibf in _ibfList)
             {
-                ibf.SetHashFunctions(hashFunctions);
+                ibf.SetHashFunctions(BloomFilter.DefaultHashFuncs(3));
             }
         }
 
