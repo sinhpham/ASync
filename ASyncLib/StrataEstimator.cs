@@ -29,6 +29,14 @@ namespace ASyncLib
         [ProtoMember(1)]
         List<IBF> _ibfList;
 
+        public void SetHashFunctions(ICollection<IHashFunc> hashFunctions)
+        {
+            foreach (var ibf in _ibfList)
+            {
+                ibf.SetHashFunctions(hashFunctions);
+            }
+        }
+
         public void Encode<TKey, TValue>(Dictionary<TKey, TValue> dic)
         {
             foreach (var item in dic)
