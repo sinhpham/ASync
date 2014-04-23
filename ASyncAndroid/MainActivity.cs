@@ -215,8 +215,8 @@ namespace ASyncAndroid
 
             var size = int.Parse(tf1.Text);
             var changedPer = int.Parse(tf2.Text);
-
-            var diffSize = changedPer * size / 100;
+            // 0.5 * changedPer is modified
+            var diffSize = (int)(1.5 * changedPer * size / 100);
 
             RunFunctionTimed(() =>
             {
