@@ -226,7 +226,7 @@ namespace ASyncAndroid
 
             RunFunctionTimed(() =>
             {
-                var clientStrata = new StrataEstimator();
+                var clientStrata = new StrataEstimator(true);
                 clientStrata.Encode(_clientDic);
 
                 StrataEstimator serverStrata;
