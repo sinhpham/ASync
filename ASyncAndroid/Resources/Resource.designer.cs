@@ -81,8 +81,11 @@ namespace ASyncAndroid
 			// aapt resource value: 0x7f050003
 			public const int genBloomBtn = 2131034115;
 			
+			// aapt resource value: 0x7f05000e
+			public const int genibf = 2131034126;
+			
 			// aapt resource value: 0x7f05000c
-			public const int genibf = 2131034124;
+			public const int genstrata = 2131034124;
 			
 			// aapt resource value: 0x7f050002
 			public const int myButton = 2131034114;
@@ -98,6 +101,9 @@ namespace ASyncAndroid
 			
 			// aapt resource value: 0x7f050007
 			public const int uploadBtn = 2131034119;
+			
+			// aapt resource value: 0x7f05000d
+			public const int uploadstrata = 2131034125;
 			
 			static Id()
 			{

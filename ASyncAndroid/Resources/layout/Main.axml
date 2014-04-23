@@ -72,6 +72,18 @@
         android:id="@+id/button1"
         android:onClick="DisposeDbClicked" />
     <Button
+        android:text="Gen strata estimator from client dic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/genstrata"
+        android:onClick="GenStrataEstimatorClicked" />
+    <Button
+        android:text="Upload strata estimator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/uploadstrata"
+        android:onClick="UploadStrataClicked" />
+    <Button
         android:text="Gen ibf from original client dic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

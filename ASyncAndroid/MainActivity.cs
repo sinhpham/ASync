@@ -207,6 +207,20 @@ namespace ASyncAndroid
         }
 
         [Export]
+        public void GenStrataEstimatorClicked(View v)
+        {
+            var clientStrata = new StrataEstimator();
+            clientStrata.Encode(_clientDic);
+
+        }
+
+        [Export]
+        public void UploadStrataClicked(View v)
+        {
+
+        }
+
+        [Export]
         public void GenIbfFromOriClicked(View v)
         {
             Console.WriteLine("Gen ibf from original client dic clicked");
