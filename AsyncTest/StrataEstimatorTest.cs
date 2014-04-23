@@ -12,18 +12,18 @@ namespace AsyncTest
         [TestMethod]
         public void StrataTest1()
         {
-            var est = new StrataEstimator();
+            var clientEst = new StrataEstimator(true);
 
             var _clientDic = DataGen.Gen(1000, 0).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
             var _serverDic = DataGen.Gen(1000, 4).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
             
 
-            est.Encode(_clientDic);
+            clientEst.Encode(_clientDic);
 
-            var serverEst = new StrataEstimator();
+            var serverEst = new StrataEstimator(true);
             serverEst.Encode(_serverDic);
 
-            var diff = serverEst - est;
+            var diff = serverEst - clientEst;
 
             var n = diff.Estimate();
             Assert.IsTrue(n > 0);

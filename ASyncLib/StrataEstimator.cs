@@ -12,12 +12,20 @@ namespace ASyncLib
     {
         public StrataEstimator()
         {
-            _ibfList = new List<IBF>(32);
-            for (var i = 0; i < 32; ++i)
+        }
+
+        public StrataEstimator(bool createIbfList)
+        {
+            if (createIbfList)
             {
-                _ibfList.Add(new IBF(80, BloomFilter.DefaultHashFuncs(3)));
+                _ibfList = new List<IBF>(32);
+                for (var i = 0; i < 32; ++i)
+                {
+                    _ibfList.Add(new IBF(80, BloomFilter.DefaultHashFuncs(3)));
+                }
             }
         }
+
         [ProtoMember(1)]
         List<IBF> _ibfList;
 
@@ -51,7 +59,12 @@ namespace ASyncLib
 
         public static StrataEstimator operator -(StrataEstimator curr, StrataEstimator x)
         {
-            var ret = new StrataEstimator();
+            var ret = new StrataEstimator(true);
+
+            if (curr._ibfList.Count != x._ibfList.Count)
+            {
+                throw new InvalidOperationException();
+            }
 
             for (var i = 0; i < curr._ibfList.Count; ++i)
             {
