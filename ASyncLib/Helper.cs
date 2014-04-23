@@ -66,6 +66,14 @@ namespace ASyncLib
             }
         }
 
+        public static string SEFileName
+        {
+            get
+            {
+                return "clientstrata.dat";
+            }
+        }
+
         public static string IBFFileName
         {
             get

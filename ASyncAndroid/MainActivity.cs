@@ -209,15 +209,34 @@ namespace ASyncAndroid
         [Export]
         public void GenStrataEstimatorClicked(View v)
         {
-            var clientStrata = new StrataEstimator();
-            clientStrata.Encode(_clientDic);
+            Console.WriteLine("Gen strata");
 
+            RunFunctionTimed(() =>
+            {
+                var clientStrata = new StrataEstimator();
+                clientStrata.Encode(_clientDic);
+                using (var f = File.Create(Path.Combine(DbManager.AppDir, Helper.SEFileName)))
+                {
+                    Serializer.Serialize(f, clientStrata);
+                }
+            });
+            Console.WriteLine("Done gen strata");
         }
 
         [Export]
-        public void UploadStrataClicked(View v)
+        public async void UploadStrataClicked(View v)
         {
+            Console.WriteLine("Uploading strata file");
 
+            var sw = new Stopwatch();
+            sw.Start();
+            using (var file = File.OpenRead(Path.Combine(DbManager.AppDir, Helper.SEFileName)))
+            {
+                await NetworkManager.FtpUpload(NetworkManager.FtpServer, file, Helper.SEFileName);
+            }
+            sw.Stop();
+
+            Console.WriteLine("Done uploading strata in {0}", sw.Elapsed);
         }
 
         [Export]
