@@ -118,5 +118,25 @@ namespace ASyncWPF
                 }
             });
         }
+
+        private void EstimateUsingStrataClicked(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("Start estimating using strata");
+            RunFunctionTimed(() =>
+            {
+                StrataEstimator clientStrata;
+                using (var f = File.OpenRead(System.IO.Path.Combine(DataDir, Helper.SEFileName)))
+                {
+                    clientStrata = Serializer.Deserialize<StrataEstimator>(f);
+                }
+
+                var serverStrata = new StrataEstimator();
+                serverStrata.Encode(_serverDic);
+
+                var diffStra = serverStrata - clientStrata;
+                var n = diffStra.Estimate();
+                Console.WriteLine("Estimated: {0}", n);
+            });
+        }
     }
 }

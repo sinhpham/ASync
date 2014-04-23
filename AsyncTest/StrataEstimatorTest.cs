@@ -14,8 +14,8 @@ namespace AsyncTest
         {
             var est = new StrataEstimator();
 
-            var _clientDic = DataGen.Gen(100, 0).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
-            var _serverDic = DataGen.Gen(100, 2).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+            var _clientDic = DataGen.Gen(1000, 0).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+            var _serverDic = DataGen.Gen(1000, 4).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
             
 
             est.Encode(_clientDic);
