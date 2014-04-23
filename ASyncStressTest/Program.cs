@@ -143,6 +143,7 @@ namespace ASyncStressTest
             var diffEst = serverEst - clientEst;
 
             var estimatedD0 = diffEst.Estimate();
+            Console.WriteLine("Estimated d0 = {0}", estimatedD0);
 
             var realD0 = changedPer * size / 100 * 1.5;
             var diff = (double)estimatedD0 / realD0;

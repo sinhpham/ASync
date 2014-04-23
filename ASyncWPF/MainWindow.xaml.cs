@@ -130,12 +130,27 @@ namespace ASyncWPF
                     clientStrata = Serializer.Deserialize<StrataEstimator>(f);
                 }
 
-                var serverStrata = new StrataEstimator();
+                var serverStrata = new StrataEstimator(true);
                 serverStrata.Encode(_serverDic);
 
                 var diffStra = serverStrata - clientStrata;
                 var n = diffStra.Estimate();
                 Console.WriteLine("Estimated: {0}", n);
+            });
+        }
+
+        private void GenServerStrataClicked(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("Start generating server strata");
+            RunFunctionTimed(() =>
+            {
+                var serverStrata = new StrataEstimator(true);
+                serverStrata.Encode(_serverDic);
+
+                using (var f = File.Create(System.IO.Path.Combine(DataDir, Helper.SEFileName)))
+                {
+                    Serializer.Serialize(f, serverStrata);
+                }
             });
         }
     }
