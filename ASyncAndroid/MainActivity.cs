@@ -207,36 +207,38 @@ namespace ASyncAndroid
         }
 
         [Export]
-        public void GenStrataEstimatorClicked(View v)
+        public async void DownloadStrataClicked(View v)
         {
-            Console.WriteLine("Gen strata");
+            Console.WriteLine("Download strata file");
+
+            var sw = new Stopwatch();
+            sw.Start();
+            NetworkManager.FtpDownload(NetworkManager.FtpServer + Helper.SEFileName, Helper.SEFileName);
+            sw.Stop();
+
+            Console.WriteLine("Done uploading strata in {0}", sw.Elapsed);
+        }
+
+        [Export]
+        public void StrataEstimatorClicked(View v)
+        {
+            Console.WriteLine("Estimate strata");
 
             RunFunctionTimed(() =>
             {
                 var clientStrata = new StrataEstimator();
                 clientStrata.Encode(_clientDic);
-                using (var f = File.Create(Path.Combine(DbManager.AppDir, Helper.SEFileName)))
+
+                StrataEstimator serverStrata;
+                using (var f = File.OpenRead(Path.Combine(DbManager.AppDir, Helper.SEFileName)))
                 {
-                    Serializer.Serialize(f, clientStrata);
+                    serverStrata = Serializer.Deserialize<StrataEstimator>(f);
                 }
+                var diffStra = serverStrata - clientStrata;
+                var estimatedD0 = diffStra.Estimate();
+                Console.WriteLine("estimated d0: {0}", estimatedD0);
             });
-            Console.WriteLine("Done gen strata");
-        }
-
-        [Export]
-        public async void UploadStrataClicked(View v)
-        {
-            Console.WriteLine("Uploading strata file");
-
-            var sw = new Stopwatch();
-            sw.Start();
-            using (var file = File.OpenRead(Path.Combine(DbManager.AppDir, Helper.SEFileName)))
-            {
-                await NetworkManager.FtpUpload(NetworkManager.FtpServer, file, Helper.SEFileName);
-            }
-            sw.Stop();
-
-            Console.WriteLine("Done uploading strata in {0}", sw.Elapsed);
+            Console.WriteLine("Done estimating strata");
         }
 
         [Export]
