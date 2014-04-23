@@ -20,9 +20,21 @@ namespace ASyncWindows
             //RunFunctionTimed(() => GenPatch1File());
 
             //RunFunctionTimed(() => GenPatch2File());
+            var serverDic = DataGen.Gen(100000, 2).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+            var est = new StrataEstimator();
+            est.Encode(serverDic);
 
+            StrataEstimator clientEst;
 
-            var a = 0;
+            using (var f = File.OpenRead(Path.Combine(_dataDir, "clientStrata.dat")))
+            {
+                clientEst = Serializer.Deserialize<StrataEstimator>(f);
+            }
+
+            var diffEst = est - clientEst;
+            var n = diffEst.Estimate();
+
+            var a = n> 0;
 
         }
 

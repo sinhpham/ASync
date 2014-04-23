@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProtoBuf;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace ASyncLib
 {
+    [ProtoContract]
     public class StrataEstimator
     {
         public StrataEstimator()
@@ -16,6 +18,7 @@ namespace ASyncLib
                 _ibfList.Add(new IBF(80, BloomFilter.DefaultHashFuncs(3)));
             }
         }
+        [ProtoMember(1)]
         List<IBF> _ibfList;
 
         public void Encode<TKey, TValue>(Dictionary<TKey, TValue> dic)
