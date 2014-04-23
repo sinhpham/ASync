@@ -124,9 +124,9 @@ namespace ASyncStressTest
                 }
             }
 
-            var estimatedDo = Helper.EstimateD0(bf.Count, serverDic.Count, hitNum, bf) + 20;
+            var estimatedD0 = Helper.EstimateD0(bf.Count, serverDic.Count, hitNum, bf) + 20;
             var realD0 = changedPer * size / 100 * 1.5;
-            var diff = (double)estimatedDo / realD0;
+            var diff = (double)estimatedD0 / realD0;
             return diff;
         }
 
@@ -135,15 +135,17 @@ namespace ASyncStressTest
             var clientDic = DataGen.Gen(size, 0).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
             var serverDic = DataGen.Gen(size, changedPer).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
 
-            var clientEst = new StrataEstimator();
+            var clientEst = new StrataEstimator(true);
             clientEst.Encode(clientDic);
-            var serverEst = new StrataEstimator();
+            var serverEst = new StrataEstimator(true);
             serverEst.Encode(serverDic);
 
             var diffEst = serverEst - clientEst;
 
+            var estimatedD0 = diffEst.Estimate();
 
-            var diff = diffEst.Estimate() ;
+            var realD0 = changedPer * size / 100 * 1.5;
+            var diff = (double)estimatedD0 / realD0;
             return diff;
         }
     }
