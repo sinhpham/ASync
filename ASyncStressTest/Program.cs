@@ -24,7 +24,7 @@ namespace ASyncStressTest
                     Console.WriteLine("Testing ibf sync with {0} size and {1} percent change", size, changedPer);
                     var sw = new Stopwatch();
                     sw.Start();
-                    var diff = StressTestBFEstimator(size, changedPer);
+                    var diff = StressTestStrataEstimator(size, changedPer);
                     sw.Stop();
                     Console.WriteLine("Done in {0}, diff = {1}", sw.Elapsed, diff);
                 }
@@ -127,6 +127,23 @@ namespace ASyncStressTest
             var estimatedDo = Helper.EstimateD0(bf.Count, serverDic.Count, hitNum, bf) + 20;
             var realD0 = changedPer * size / 100 * 1.5;
             var diff = (double)estimatedDo / realD0;
+            return diff;
+        }
+
+        static double StressTestStrataEstimator(int size, int changedPer)
+        {
+            var clientDic = DataGen.Gen(size, 0).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+            var serverDic = DataGen.Gen(size, changedPer).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+
+            var clientEst = new StrataEstimator();
+            clientEst.Encode(clientDic);
+            var serverEst = new StrataEstimator();
+            serverEst.Encode(serverDic);
+
+            var diffEst = serverEst - clientEst;
+
+
+            var diff = diffEst.Estimate() ;
             return diff;
         }
     }

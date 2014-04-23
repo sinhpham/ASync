@@ -2,6 +2,7 @@
 using ASyncLib;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AsyncTest
 {
@@ -9,30 +10,23 @@ namespace AsyncTest
     public class StrataEstimatorTest
     {
         [TestMethod]
-        public void TestMethod1()
+        public void StrataTest1()
         {
             var est = new StrataEstimator();
 
-            var _clientDic = new Dictionary<string, string>();
-            var _serverDic = new Dictionary<string, string>();
-            for (var i = 0; i < 20000; ++i)
-            {
-                _clientDic.Add(i.ToString(), i.ToString());
-            }
-            for (var i = 0; i < 20005; ++i)
-            {
-                _serverDic.Add(i.ToString(), i.ToString());
-            }
+            var _clientDic = DataGen.Gen(100, 0).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+            var _serverDic = DataGen.Gen(100, 2).ToDictionary(currItem => currItem.Key, currItem => currItem.Value);
+            
 
             est.Encode(_clientDic);
 
             var serverEst = new StrataEstimator();
             serverEst.Encode(_serverDic);
 
-            var diff = est - serverEst;
+            var diff = serverEst - est;
 
             var n = diff.Estimate();
-            Assert.IsTrue(true);
+            Assert.IsTrue(n > 0);
         }
     }
 }

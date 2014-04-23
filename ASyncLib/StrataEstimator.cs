@@ -41,6 +41,7 @@ namespace ASyncLib
                 {
                     return (int)(Math.Pow(2.0, i + 1) * count);
                 }
+                count += amb.Count - bma.Count;
             }
             throw new InvalidOperationException();
         }
