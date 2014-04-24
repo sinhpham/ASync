@@ -9,7 +9,6 @@
         <Button Content="Save db" HorizontalAlignment="Left" Margin="48,118,0,0" VerticalAlignment="Top" Width="157" Click="SaveDbClicked"/>
         <TextBox x:Name="sizeTb" HorizontalAlignment="Left" Height="23" Margin="210,44,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" ToolTip="size"/>
         <TextBox x:Name="changedTb" HorizontalAlignment="Left" Height="23" Margin="335,44,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" ToolTip="changed"/>
-        <Button Content="Estimate using strata" HorizontalAlignment="Left" Margin="48,143,0,0" VerticalAlignment="Top" Width="157" Click="EstimateUsingStrataClicked"/>
         <Button Content="Gen strata" HorizontalAlignment="Left" Margin="48,168,0,0" VerticalAlignment="Top" Width="157" Click="GenServerStrataClicked"/>
 
     </Grid>
