@@ -213,10 +213,10 @@ namespace ASyncAndroid
 
             var sw = new Stopwatch();
             sw.Start();
-            NetworkManager.FtpDownload(NetworkManager.FtpServer + Helper.SEFileName, Helper.SEFileName);
+            await NetworkManager.FtpDownload(NetworkManager.FtpServer + Helper.SEFileName, Helper.SEFileName);
             sw.Stop();
 
-            Console.WriteLine("Done uploading strata in {0}", sw.Elapsed);
+            Console.WriteLine("Done downloading strata in {0}", sw.Elapsed);
         }
 
         [Export]
@@ -234,6 +234,7 @@ namespace ASyncAndroid
                 {
                     serverStrata = Serializer.Deserialize<StrataEstimator>(f);
                 }
+                serverStrata.SetHashFunctions();
                 var diffStra = serverStrata - clientStrata;
                 var estimatedD0 = diffStra.Estimate();
                 Console.WriteLine("estimated d0: {0}", estimatedD0);
@@ -245,13 +246,9 @@ namespace ASyncAndroid
         public void GenIbfFromOriClicked(View v)
         {
             Console.WriteLine("Gen ibf from original client dic clicked");
-            var tf1 = FindViewById<EditText>(Resource.Id.editText1);
             var tf2 = FindViewById<EditText>(Resource.Id.editText2);
 
-            var size = int.Parse(tf1.Text);
-            var changedPer = int.Parse(tf2.Text);
-            // 0.5 * changedPer is modified
-            var diffSize = (int)(1.5 * changedPer * size / 100);
+            var diffSize = int.Parse(tf2.Text);
 
             RunFunctionTimed(() =>
             {
